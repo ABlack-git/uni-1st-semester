@@ -24,6 +24,15 @@ function [x_low, x_high] = range_by_quantiles(cdf, p_low, p_high)
 % remove the following lines and implement the function: 
 intensity = linspace(0, 1, length(cdf));
 x_low = intensity(find(cdf<=p_low));
-x_low = x_low(end);
 x_high = intensity(find(cdf>=p_high));
-x_high = x_high(1);
+if isempty(x_low)
+    x_low=0.0;
+else
+    x_low=x_low(end);
+end
+
+if isempty(x_high)
+    x_high=1.0;
+else
+    x_high=x_high(1);
+end
