@@ -1,16 +1,49 @@
 <basinCityPD>
 	<people>
-		<person id="1">Nancy Callahan</person>
-		<person id="2">Roark Junior</person>
-		<person id="3">Senator Roark</person>
-		<person id="4">Johny</person>
-		<person id="5">Marice</person>
-		<person id="6">John Hartigan</person>
-		<person id="7">Mort</person>
-		<person id="8">Liebowitz</person>
-		<person id="9">Unnamed Cop</person>
-		<person id="10">Mavr</person>
-		<person id="11">Bob</person>
+		<person id="1">
+			<name>Nancy Callahan</name>
+			<age>11</age>
+		</person>
+		<person id="2">
+			<name>Roark Junior</name>
+			<age>22</age>
+		</person>
+		<person id="3">
+			<name>Senator Roark</name>
+			<age>40</age>
+		</person>
+		<person id="4">
+			<name>Johny</name>
+			<age>23</age>
+		</person>
+		<person id="5">
+			<name>Marice</name>
+			<age>21</age>
+		</person>
+		<person id="6">
+			<name>John Hartigan</name>
+			<age>50</age>
+		</person>
+		<person id="7">
+			<name>Mort</name>
+			<age>35</age>
+		</person>
+		<person id="8">
+			<name>Liebowitz</name>
+			<age>52</age>
+		</person>
+		<person id="9">
+			<name>Unnamed Cop</name>
+			<age>33</age>
+		</person>
+		<person id="10">
+			<name>Mavr</name>
+			<age>41</age>
+		</person>
+		<person id="11">
+			<name>Bob</name>
+			<age>30</age>
+		</person>
 	</people>
 	<investigations>
 		<investigation id="1" status="closed" departmentId="1">

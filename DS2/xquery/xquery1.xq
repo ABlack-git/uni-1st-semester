@@ -9,7 +9,10 @@ element departments {
         	for $o in $d/officers/officer
             return element offcier{
             	element name{
-                text {//people/person[@id = $o/@personID]/text()}
+                text {//people/person[@id = $o/@personID]/name/text()}
+                },
+                element age{
+                    text{//people/person[@id = $o/@personID]/age/text()}
                 },
                 element rank{
                 	text{$o/@rank}
