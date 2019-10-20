@@ -1,0 +1,69 @@
+<basinCityPD>
+	<people>
+		<person id="1">Nancy Callahan</person>
+		<person id="2">Roark Junior</person>
+		<person id="3">Senator Roark</person>
+		<person id="4">Johny</person>
+		<person id="5">Marice</person>
+		<person id="6">John Hartigan</person>
+		<person id="7">Mort</person>
+		<person id="8">Liebowitz</person>
+		<person id="9">Unnamed Cop</person>
+		<person id="10">Mavr</person>
+		<person id="11">Bob</person>
+	</people>
+	<investigations>
+		<investigation id="1" status="closed" departmentId="1">
+			<investigationDescription>Nancy Callahan kidnaping</investigationDescription>
+			<involvedPeople>
+				<person id="1" role="victim"/>
+				<person id="2" role="suspect"/>
+				<person id="3" role="suspect"/>
+				<person id="6" role="investigator"/>
+				<person id="7" role="investigator"/>
+			</involvedPeople>
+		</investigation>
+		<investigation id="2" status="opened" departmentId="3">
+			<investigationDescription>The Long Bad Night, murder of Johny</investigationDescription>
+			<involvedPeople>
+				<person id="4" role="victim"/>
+				<person id="5" role="victim"/>
+				<person id="3" role="suspect"/>
+				<person id="7" role="investigator"/>
+				<person id="8" role="investigator"/>
+			</involvedPeople>
+		</investigation>
+		<investigation id="2" status="opened" departmentId="3">
+			<investigationDescription>Murder of Unnamed Cop</investigationDescription>
+			<involvedPeople>
+				<person id="9" role="victim"/>
+				<person id="10" role="suspect"/>
+				<person id="11" role="investigator"/>
+			</involvedPeople>
+		</investigation>
+	</investigations>
+	<departments>
+		<department id="1" district="The Docks">
+			<officers>
+				<!-- John Hartigan -->
+				<officer personId="6" rank="Detective"/>
+			</officers>
+		</department>
+		<department id="2" district="Sacred Oaks">
+			<officers>
+				<!-- Mort -->
+				<officer personId="7" rank="Detective"/>
+				<!-- Liebowitz -->
+				<officer personId="8" rank="Captain"/>
+			</officers>
+		</department>
+		<department id="3" district="The Pit">
+			<officers>
+				<!-- unnamed cop -->
+				<officer personId="9" rank="Cop"/>
+				<!-- Bob -->
+				<officer personId="11" rank="Captain"/>
+			</officers>
+		</department>
+	</departments>
+</basinCityPD>

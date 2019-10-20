@@ -1,0 +1,2 @@
+(:get name of second investigator in investigation with id 1 :)
+//people/person[@id = //investigation[@id="1"]/involvedPeople/person[@role="investigator"][position()=2]/@id]/text()

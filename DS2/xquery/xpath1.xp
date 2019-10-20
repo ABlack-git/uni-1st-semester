@@ -1,0 +1,2 @@
+(: select all investigation descriptions from The Pit district :)
+//investigation[@departmentId eq //department[@district="The Pit"]/@id]/investigationDescription/text()
