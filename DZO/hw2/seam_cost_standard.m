@@ -19,14 +19,12 @@ g_img=rgb2gray(img);
 dx=[1/8 0 -1/8;1/4,0,-1/4;1/8,0,-1/8];
 dy=[1/8,1/4,1/8;0,0,0;-1/8,-1/4,-1/8];
 vertex_cost= abs(conv2(g_img,dx,'same'))+abs(conv2(g_img, dy,'same'));
-[h,w]=size(g_img);
-vertex_num = h*w;
+[h,~]=size(g_img);
 if exist('mask_delete', 'var')
-    vertex_cost(mask_delete)=-2*vertex_num;
-end
+    vertex_cost(mask_delete)=-2*h;
 
 if exist('mask_protect', 'var')
-   vertex_cost(mask_protect)=2*vertex_num;
+   vertex_cost(mask_protect)=2*h;
 end
 
 end

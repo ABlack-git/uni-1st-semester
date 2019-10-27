@@ -33,11 +33,11 @@ topright_cost(i,1:w-1)=[inf(h-1,1) sqrt(sum((img(i,j+1,:)-img(i,j-1,:)).^2,3))+s
 vertex_cost = zeros(h, w);
 
 if exist('mask_delete', 'var')
-    vertex_cost(mask_delete)=-2*sqrt(3)*(h*w-1);
+    vertex_cost(mask_delete)=-2*sqrt(3)*(h-1);
 end
 
 if exist('mask_protect', 'var')
-    vertex_cost(mask_protect)=2*sqrt(3)*(h*w-1);
+    vertex_cost(mask_protect)=2*sqrt(3)*(h-1);
 end
 
 end

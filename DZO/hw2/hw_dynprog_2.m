@@ -18,7 +18,7 @@ DIRECTION = 'vertical';
 
 % method for computing the vertex and edge costs: 'standard' is based on
 % gradient estimation and 'forward' on difference of neighboring pixels
-COST_METHOD = 'forward';
+COST_METHOD = 'standard';
 
 % load the input image
 img = im2double(imread(IMG_PATH));
