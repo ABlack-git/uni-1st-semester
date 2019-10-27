@@ -15,13 +15,15 @@ function data_carved = carve_seam(seam, data)
 %     should correspond to the type of the input matrix
 
 [h, w, c] = size(data);
-
 if islogical(data)
     data_carved = false(h, w - 1, c);
 else
     data_carved = zeros(h, w - 1, c);
 end
 
-% add your code here
+for i=1:h
+    idx = [1:seam(i)-1 seam(i)+1:w];
+    data_carved(i,:,:)=data(i,idx,:);
+end
 
 end

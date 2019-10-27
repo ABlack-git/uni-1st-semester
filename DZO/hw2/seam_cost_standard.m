@@ -15,13 +15,18 @@ function vertex_cost = seam_cost_standard(img, mask_delete, mask_protect)
 %     to be deleted and protected
 
 % estimate partial derivatives and compute vertex_cost
-
+g_img=rgb2gray(img);
+dx=[1/8 0 -1/8;1/4,0,-1/4;1/8,0,-1/8];
+dy=[1/8,1/4,1/8;0,0,0;-1/8,-1/4,-1/8];
+vertex_cost= abs(conv2(g_img,dx,'same'))+abs(conv2(g_img, dy,'same'));
+[h,w]=size(g_img);
+vertex_num = h*w;
 if exist('mask_delete', 'var')
-    % modify vertex_cost of pixels to be deleted
+    vertex_cost(mask_delete)=-2*vertex_num;
 end
 
 if exist('mask_protect', 'var')
-    % modify vertex_cost of protected pixels
+   vertex_cost(mask_protect)=2*vertex_num;
 end
 
 end

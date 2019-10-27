@@ -21,16 +21,23 @@ function [vertex_cost, topleft_cost, top_cost, topright_cost] = ...
 [h, w, ~] = size(img);
 
 % add code for computing topleft_cost, top_cost and topright_cost
-
+i=2:h;
+j=2:w-1;
+topleft_cost=zeros(h,w);
+topleft_cost(i,2:w)=[sqrt(sum((img(i,j+1,:)-img(i,j-1,:)).^2,3))+sqrt(sum((img(i-1,j,:)-img(i,j-1,:)).^2,3)) inf(h-1,1)];
+top_cost=zeros(h,w);
+top_cost(i,:)=[inf(h-1,1) sqrt(sum((img(i,j+1,:)-img(i,j-1,:)).^2,3)) inf(h-1,1)];
+topright_cost=zeros(h,w);
+topright_cost(i,1:w-1)=[inf(h-1,1) sqrt(sum((img(i,j+1,:)-img(i,j-1,:)).^2,3))+sqrt(sum((img(i-1,j,:)-img(i,j+1,:)).^2,3))];
 % default vertex_cost is zero
 vertex_cost = zeros(h, w);
 
 if exist('mask_delete', 'var')
-    % modify vertex_cost of pixels to be deleted
+    vertex_cost(mask_delete)=-2*sqrt(3)*(h*w-1);
 end
 
 if exist('mask_protect', 'var')
-    % modify vertex_cost of protected pixels
+    vertex_cost(mask_protect)=2*sqrt(3)*(h*w-1);
 end
 
 end
