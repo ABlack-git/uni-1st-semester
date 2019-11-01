@@ -1,0 +1,10 @@
+#select counts of offenses for each driver
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix p: <http://example.com/policedb/property#>
+select ?ln (COUNT(?off) AS ?c)
+where {
+	?off rdf:type p:Offense.
+	?off p:driver ?d.
+	?d p:name [p:last ?ln].
+}
+group by ?ln

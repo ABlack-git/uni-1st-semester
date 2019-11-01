@@ -1,0 +1,120 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix pdb: <http://example.com/policedb/> .
+@prefix p: <http://example.com/policedb/property#> .
+
+pdb:car-1
+	rdf:type p:Car;
+	p:color "Green";
+	p:plate "mr0025be";
+	p:carModel "Mini".
+
+pdb:car-2
+	rdf:type p:Car;
+	p:color "Black";
+	p:plate "ta0004te";
+	p:carModel "GMC Vandura".
+
+pdb:car-3
+	rdf:type p:Car;
+	p:color "White";
+	p:plate "se0000xy";
+	p:carModel "Tesla S".
+
+pdb:car-4
+	rdf:type p:Car;
+	p:color "Black";
+	p:plate "bt2015tf";
+	p:carModel "DMC DeLorian".
+
+pdb:person-1
+	rdf:type p:Person;
+	p:name [p:last "Mr. Bean"];
+	p:drives pdb:car-1.
+
+pdb:person-2
+	rdf:type p:Person;
+	p:name [p:first "Emmett"; p:last "Dr. Brown"];
+	p:drives pdb:car-4.
+
+pdb:person-3
+	rdf:type p:Person;
+	p:name [p:first "Marty"; p:last "McFly"];
+	p:drives pdb:car-4.
+
+pdb:person-4
+	rdf:type p:Person;
+	p:name [p:first "Bosco"; p:middle "Albert B. A."; p:last "Baracus"];
+	p:drives pdb:car-2.
+
+pdb:person-5
+	rdf:type p:Person;
+	p:name [p:first "Jeremy"; p:last "Clarkson"];
+	p:drives pdb:car-1, pdb:car-2, pdb:car-3, pdb:car-4.
+
+pdb:person-6
+	rdf:type p:Person;
+	p:name [p:first "Elon"; p:last "Musk"];
+	p:drives pdb:car-3.
+
+pdb:offense-1
+	rdf:type p:Offense;
+	p:offenseId "1";
+	p:driver pdb:person-1;
+	p:car pdb:car-1;
+	p:offenseDesc "Driving while being stupidly funny".
+
+pdb:offense-2
+	rdf:type p:Offense;
+	p:offenseId "2";
+	p:driver pdb:person-2;
+	p:car pdb:car-4;
+	p:offenseDesc "Time-space continium violation using vehicle".
+
+pdb:offense-3
+	rdf:type p:Offense;
+	p:offenseId "3";
+	p:driver pdb:person-3;
+	p:car pdb:car-4;
+	p:offenseDesc "Time-space continium violation using vehicle".
+
+pdb:offense-4
+	rdf:type p:Offense;
+	p:offenseId "4";
+	p:driver pdb:person-6;
+	p:car pdb:car-3;
+	p:offenseDesc "Twitting while driving".
+
+pdb:offense-5
+	rdf:type p:Offense;
+	p:offenseId "5";
+	p:driver pdb:person-4;
+	p:car pdb:car-2;
+	p:offenseDesc "Bad Attitude while driving".
+
+pdb:offense-6
+	rdf:type p:Offense;
+	p:offenseId "6";
+	p:driver pdb:person-5;
+	p:car pdb:car-1;
+	p:offenseDesc "Extreme speed limit violation".
+
+pdb:offense-7
+	rdf:type p:Offense;
+	p:offenseId "7";
+	p:driver pdb:person-5;
+	p:car pdb:car-3;
+	p:offenseDesc "Extreme speed limit violation".
+
+pdb:offense-8
+	rdf:type p:Offense;
+	p:offenseId "8";
+	p:driver pdb:person-5;
+	p:car pdb:car-3;
+	p:offenseDesc "Extreme speed limit violation".
+
+pdb:offense-9
+	rdf:type p:Offense;
+	p:offenseId "9";
+	p:driver pdb:person-5;
+	p:car pdb:car-4;
+	p:offenseDesc "Extreme speed limit violation".

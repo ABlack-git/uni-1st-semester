@@ -1,0 +1,21 @@
+#select cars that Baracus and Clarkson drive
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix p: <http://example.com/policedb/property#>
+select ?ln ?c ?plate
+where {
+	{
+		?person rdf:type p:Person.
+		?person p:drives ?car.
+		?car p:carModel ?c; p:plate ?plate.
+		?person p:name [p:last ?ln].
+		filter (?ln = "Baracus")
+	}
+	union
+	{
+		?person rdf:type p:Person.
+		?person p:drives ?car.
+		?car p:carModel ?c; p:plate ?plate.
+		?person p:name [p:last ?ln].
+		filter (?ln = "Clarkson")
+	}
+}
