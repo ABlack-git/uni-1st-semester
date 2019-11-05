@@ -1,7 +1,6 @@
 //
 // Created by zakharca on 23/10/2019.
 //
-#include <string>
 #include <iostream>
 #include <sstream>
 #include <cstdio>
@@ -12,60 +11,124 @@
 
 #define UNVISITED -1
 
+Graph::Graph(int numV, int numE) : adjacencyList(numV), topSortedV() {
+    numVertices = numV;
+    numEdges = numE;
+    sccNum = 0;
+    maxPathLength = -1;
+    maxPathCost = 0;
+    vertices = new Vertex[numVertices];
+}
+
 void Graph::addEdge(int src, int dest) {
     adjacencyList.addEdge(src, dest);
 }
 
 void Graph::printGraph() {
     for (int i = 0; i < numVertices; i++) {
-        Node *node = adjacencyList.getNeighboursHead(i);
+        std::vector<int> neighbours = adjacencyList.getNeighbours(i);
         printf("Neighbours of %d:\n", i);
-        while (node != nullptr) {
-            printf("%d->", node->vertex);
-            node = node->child;
+        for (int vertex : neighbours) {
+            printf("%d-->", vertex);
         }
         printf("\n");
     }
 }
 
-void Graph::findSccs() {
-    auto *sccStack = new std::stack<int>();
+void Graph::findScc() {
+    auto sccStack = std::stack<int>();
     bool *onStack = new bool[numVertices];
+    for (int i = 0; i < numVertices; i++) {
+        onStack[i] = false;
+    }
     int time = 0;
-
     for (int i = 0; i < numVertices; i++) {
         if (vertices[i].desc == UNVISITED) {
             sccDfs(i, sccStack, onStack, time);
         }
     }
-    printf("sccNum=%d", sccNum);
+    for (auto rit = topSortedV.rbegin(); rit != topSortedV.rend(); rit++) {
+        std::cout << *rit << std::endl;
+    }
+    printf("sccNum=%d\n", sccNum);
 
 }
 
-void Graph::sccDfs(int parent, std::stack<int> *stack, bool *onStack, int time) {
-    stack->push(parent);
-    onStack[parent] = true;
-    vertices->desc = vertices->lowLink = time++;
-    Node *node = adjacencyList.getNeighboursHead(parent);
-    while (node != nullptr) {
-        int child = node->vertex;
+void Graph::sccDfs(int currentV, std::stack<int> &stack, bool *onStack, int &time) {
+    stack.push(currentV);
+    onStack[currentV] = true;
+    vertices[currentV].desc = time;
+    vertices[currentV].lowLink = time++;
+    std::vector<int> neighbours = adjacencyList.getNeighbours(currentV);
+    for (int child : neighbours) {
         if (vertices[child].desc == UNVISITED) {
             sccDfs(child, stack, onStack, time);
+            vertices[currentV].lowLink = std::min(vertices[currentV].lowLink, vertices[child].lowLink);
+        } else if (onStack[child]) {
+            vertices[currentV].lowLink = std::min(vertices[child].lowLink, vertices[currentV].desc);
         }
-        if (onStack[child]) {
-            vertices[child].lowLink = std::min(vertices[child].lowLink, vertices[parent].lowLink);
-        }
-        node = node->child;
     }
-    if (vertices[parent].desc == vertices[parent].lowLink) {
-        while (!stack->empty()) {
-            int id = stack->top();
-            stack->pop();
+    if (vertices[currentV].desc == vertices[currentV].lowLink) {
+        std::stack<int> costStack = std::stack<int>();
+        while (!stack.empty()) {
+            int id = stack.top();
+            topSortedV.push_back(id);
+            costStack.push(id);
             onStack[id] = false;
-            vertices[id].lowLink = vertices[parent].desc;
-            if (id == parent) break;
+            vertices[id].lowLink = vertices[currentV].desc;
+            stack.pop();
+            if (id == currentV) {
+                break;
+            }
+        }
+        int cost = costStack.size();
+        while (!costStack.empty()) {
+            int id = costStack.top();
+            vertices[id].cost = cost;
+            costStack.pop();
         }
         sccNum++;
+    }
+}
+
+void Graph::findExpressPath() {
+    bool *explored = new bool[numVertices];
+    Path *expressPaths = new Path[numVertices];
+    for (int i = 0; i < numVertices; i++) {
+        explored[i] = false;
+    }
+    for (auto rit = topSortedV.rbegin(); rit != topSortedV.rend(); rit++) {
+        int i = *rit;
+        if (!explored[i]) {
+            expressPathDfs(i, explored, expressPaths);
+        }
+    }
+    printf("%d %d\n", maxPathCost, maxPathLength);
+}
+
+void Graph::expressPathDfs(int currentV, bool *visited, Path *expressPaths) {
+    visited[currentV] = true;
+    expressPaths[currentV].pathLength = 0;
+    expressPaths[currentV].pathCost = vertices[currentV].cost;
+    for (int child : adjacencyList.getNeighbours(currentV)) {
+        if (vertices[child].cost < vertices[currentV].cost || vertices[currentV].lowLink == vertices[child].lowLink) {
+            continue;
+        }
+        if (!visited[child]) {
+            expressPathDfs(child, visited, expressPaths);
+        }
+        int length = expressPaths[child].pathLength + 1;
+        int cost = expressPaths[child].pathCost + vertices[currentV].cost;
+        if (cost > expressPaths[currentV].pathCost ||
+            (cost == expressPaths[currentV].pathCost && length > expressPaths[currentV].pathLength)) {
+            expressPaths[currentV].pathCost = cost;
+            expressPaths[currentV].pathLength = length;
+        }
+    }
+    if (expressPaths[currentV].pathCost > maxPathCost ||
+        (expressPaths[currentV].pathCost == maxPathCost && expressPaths[currentV].pathLength > maxPathLength)) {
+        maxPathCost = expressPaths[currentV].pathCost;
+        maxPathLength = expressPaths[currentV].pathLength;
     }
 }
 

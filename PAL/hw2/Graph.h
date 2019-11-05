@@ -14,29 +14,36 @@ struct Vertex {
     int cost = -1;
 };
 
+struct Path {
+    int pathCost = 0;
+    int pathLength = 0;
+};
+
 class Graph {
 private:
     int numVertices;
     int numEdges;
     int sccNum;
+    int maxPathCost;
+    int maxPathLength;
     Vertex *vertices;
     AdjacencyList adjacencyList;
+    std::vector<int> topSortedV;
 
-    void sccDfs(int parent, std::stack<int> *stack, bool *onStack, int time);
+    void sccDfs(int currentV, std::stack<int> &stack, bool *onStack, int &time);
+
+    void expressPathDfs(int vertex, bool *visited, Path *expressPaths);
 
 public:
-    Graph(int numV, int numE) : adjacencyList(numV) {
-        numVertices = numV;
-        numEdges = numE;
-        sccNum = 0;
-        vertices = new Vertex[numVertices];
-    }
+    Graph(int numV, int numE);
 
     void printGraph();
 
     void addEdge(int src, int dest);
 
-    void findSccs();
+    void findScc();
+
+    void findExpressPath();
 };
 
 Graph buildGraph();

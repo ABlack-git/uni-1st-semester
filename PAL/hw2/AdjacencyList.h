@@ -5,35 +5,16 @@
 #ifndef HW2_ADJACENCYLIST_H
 #define HW2_ADJACENCYLIST_H
 
-struct Node {
-    int vertex;
-    Node *child;
-};
-
-class NeighboursList {
-public:
-    Node *head;
-    Node *tail;
-    int size;
-
-    NeighboursList() {
-        head = nullptr;
-        tail = nullptr;
-        size = 0;
-    }
-
-    void addNeighbour(int value);
-
-};
+#include <vector>
 
 class AdjacencyList {
 private:
-    NeighboursList **adjacencyList;
+    std::vector<int> *adjacencyList;
 
 public:
     AdjacencyList(int numV);
 
-    Node *getNeighboursHead(int src);
+    std::vector<int> getNeighbours(int src);
 
     void addEdge(int src, int dest);
 };
