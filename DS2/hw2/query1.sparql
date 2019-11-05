@@ -1,0 +1,12 @@
+#select first middle and last names of all persons
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix p: <http://example.com/policedb/property#>
+select ?fn ?mn ?ln
+where {
+	?person rdf:type p:Person.
+	?person p:name ?blank.
+	OPTIONAL {?blank p:first ?fn.}
+	OPTIONAL {?blank p:middle ?mn.}
+	?blank p:last ?ln.
+}
+ORDER BY ?ln

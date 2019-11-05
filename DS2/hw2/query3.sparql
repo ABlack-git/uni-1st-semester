@@ -1,0 +1,20 @@
+#select all offenses except for Jeremy Clarkson and coresponding drivers and cars
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix p: <http://example.com/policedb/property#>
+select ?id ?ln ?car ?plate ?offdesc
+where {
+	?off rdf:type p:Offense.
+	?off p:offenseDesc ?offdesc.
+	?off p:offenseId ?id.
+	?off p:car ?offcar.
+	?offcar p:carModel ?car; p:plate ?plate.
+	?off p:driver ?d.
+	?d p:name [p:last ?ln].
+	minus {
+		?off rdf:type p:Offense.
+		?off p:driver ?d.
+		?d p:name [p:last ?ln].
+		filter (?ln = "Clarkson")
+	}
+}
+ORDER BY ?id
