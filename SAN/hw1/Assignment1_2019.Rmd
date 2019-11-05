@@ -1,0 +1,110 @@
+---
+title: "Assignment 1: Regression"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is the first assignment of B4M36SAN in 2019.
+Write your solution directly into this document and submit it to BRUTE.
+The deadline is 28.10.2019.
+
+First of all go through the code and fill the missing part (0.5 points).
+
+```{r prepare, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library("MASS") # Includes the B    oston dataset
+library("formula.tools") # Contains a helper function
+library("gam") # Generalized additive models
+
+set.seed(7) # Set a fixed random seed for measurement replicability
+    
+
+testMeanSquareError = function(modelType, modelStruct, dataset) {
+  datasetSize <- nrow(dataset)
+  sampleSize <- floor(0.8 * datasetSize)
+  trainIndices <- sample(seq_len(datasetSize), size = sampleSize)
+  trainSet <- dataset[trainIndices, ]
+  testSet <- dataset[-trainIndices, ]
+  fit <- modelType(modelStruct, data = trainSet)
+  independentVariable <- formula.tools::lhs(modelStruct)
+  
+  predictions <- predict(fit, testSet)
+  groundTruth <- getElement(testSet, independentVariable)
+  MSE <- mean((groundTruth-predictions)^2)
+  return(MSE)
+}
+```
+
+We will attempt to predict the `medv` variable in the Boston dataset using the `lstat` and `rm` variables.
+
+
+Example usage of the function, to estimate the error of a linear model:
+
+
+```{r}
+testMeanSquareError(lm, medv ~ lstat + rm, Boston)
+```
+
+Construct and measure the performance of the following models (include your code in this document, 2 points):
+
+1. The linear model above
+2. A model polynomial in one variable and linear in the other (Determine a suitable polynomial degree >= 2)
+```{r}
+f<-medv ~ rm + poly(lstat, degree=2, raw=T)
+fit1 <- lm(f,data = Boston)
+testMeanSquareError(lm, f, Boston)
+```
+3. A model polynomial in both variables (Determine a suitable polynomial degrees >= 2)
+```{r}
+f<- medv~poly(lstat, degree=2, raw=T) + poly(rm, degree=2, raw=T)
+fit2<-lm(f, data = Boston)
+testMeanSquareError(lm, f, Boston)
+```
+4. A model polynomial in both variables that clearly overfits, but still try to keep the degrees as low as possible.
+```{r}
+f <- medv~poly(lstat,degree = 7,raw=T)+poly(rm, degree=7, raw=T)
+fit3<-lm(f, data = Boston)
+testMeanSquareError(lm, f, Boston)
+```
+5. A generalized additive model (gam) using natural spline for one variable and linear function for the other (Use the same degree as in 2.)
+```{r}
+f<-medv~ns(lstat,df=2)+rm
+fit4<-lm(f,data = Boston)
+testMeanSquareError(lm,f,dataset = Boston)
+```
+6. A generalized additive model (gam) using natural spline for both variables. (Use the same degrees as in 3)
+```{r}
+f<-medv~ns(lstat, df=2)+ns(rm, df=2)
+fit5 <- lm(f, data = Boston)
+testMeanSquareError(lm,f,Boston)
+```
+
+7. A linear combination of natural splines in either variables (Determine a suitable degrees >= 2)
+#Given that gam is basically a liniar combination of basis functions this one is the same as gam, but linear combinations by definition do not have intercept term so we exclude it here.
+```{r}
+f<-medv~ns(lstat, df=3)+ns(rm, df=3)+0
+fit6 <-lm(f,data=Boston)
+testMeanSquareError(lm, f, data=Boston)
+```
+8. Some other kind of model that you choose.
+```{r}
+f<-medv~lo(lstat, rm, span = 0.7)
+fit7<-gam(f,data=Boston)
+testMeanSquareError(gam,f,Boston)
+```
+
+Answer the following questions (write the answers into this document, 2.5 points):
+
+1. Which model had the best measured performance?
+  Polynomial in both variables
+2. Is the best model relatively simple or complicated among the other models?
+  This model is more simple compared to gams(since in gams we use natural splines which require additional constraints), but of course more complicated compared to linear model or polynomial+linear. 
+3. Did the GAM models perform better than the polynomial ones? Explain why you think it was or was not the case.
+  The difference in performance between gam and polynomial models wasn't big. Since I used low degree of polynomial/freedom there wasn't much space where combination of natural splines and gam could emprove the performance.
+4. For the models that did not perform well, give an explanation why it was the case.
+    - linear model is insufficient to describe the data, since the data is not exactly linear
+    - Also, models that use linear term performed a bit worse. This is again given by the fact that model can't fully capture complexity of the data.
+5. Discuss briefly: What would change if we used cross-valiadation instead of a simple train/test measurement?
+  Since this dataset is not very big, cross-validation could help to better understand which model perfomed better. Using k-fold CV we would get the avarage of error across k combinations of testing and training sets. This would probably result in different set of models that performed best, since using test error on small dataset doesn't neccessarily mean that model generalises.
+6. Is the difference between the best and the other models large? Is the difference statistically significant? Propose a method that works with an interval error estimate.
+  
