@@ -11,12 +11,10 @@
 
 #define UNVISITED -1
 
-Graph::Graph(int numV, int numE) : adjacencyList(numV), topSortedV() {
+Graph::Graph(int numV) : adjacencyList(numV), topSortedV() {
     numVertices = numV;
-    numEdges = numE;
-    sccNum = 0;
-    maxPathLength = -1;
-    maxPathCost = 0;
+    maxPathLength = INT_MIN;
+    maxPathCost = INT_MIN;
     vertices = new Vertex[numVertices];
 }
 
@@ -47,60 +45,66 @@ void Graph::findScc() {
             sccDfs(i, sccStack, onStack, time);
         }
     }
-    for (auto rit = topSortedV.rbegin(); rit != topSortedV.rend(); rit++) {
-        std::cout << *rit << std::endl;
-    }
-    printf("sccNum=%d\n", sccNum);
-
 }
 
 void Graph::sccDfs(int currentV, std::stack<int> &stack, bool *onStack, int &time) {
     stack.push(currentV);
     onStack[currentV] = true;
-    vertices[currentV].desc = time;
-    vertices[currentV].lowLink = time++;
-    std::vector<int> neighbours = adjacencyList.getNeighbours(currentV);
-    for (int child : neighbours) {
+    vertices[currentV].desc = vertices[currentV].lowLink = time++;
+    for (int child : adjacencyList.getNeighbours(currentV)) {
         if (vertices[child].desc == UNVISITED) {
             sccDfs(child, stack, onStack, time);
             vertices[currentV].lowLink = std::min(vertices[currentV].lowLink, vertices[child].lowLink);
         } else if (onStack[child]) {
-            vertices[currentV].lowLink = std::min(vertices[child].lowLink, vertices[currentV].desc);
+            vertices[currentV].lowLink = std::min(vertices[currentV].lowLink, vertices[child].desc);
         }
     }
     if (vertices[currentV].desc == vertices[currentV].lowLink) {
-        std::stack<int> costStack = std::stack<int>();
+        auto costStack = std::stack<int>();
         while (!stack.empty()) {
-            int id = stack.top();
-            topSortedV.push_back(id);
-            costStack.push(id);
-            onStack[id] = false;
-            vertices[id].lowLink = vertices[currentV].desc;
+            int vertex = stack.top();
             stack.pop();
-            if (id == currentV) {
+            onStack[vertex] = false;
+            topSortedV.push_back(vertex);
+            costStack.push(vertex);
+            vertices[vertex].scc = currentV;
+            if (vertex == currentV) {
                 break;
             }
         }
         int cost = costStack.size();
         while (!costStack.empty()) {
-            int id = costStack.top();
-            vertices[id].cost = cost;
+            vertices[costStack.top()].cost = cost;
             costStack.pop();
         }
-        sccNum++;
     }
 }
 
 void Graph::findExpressPath() {
-    bool *explored = new bool[numVertices];
-    Path *expressPaths = new Path[numVertices];
-    for (int i = 0; i < numVertices; i++) {
-        explored[i] = false;
-    }
+    Path expressPaths[numVertices];
+    //traverse topSorted in reverse
     for (auto rit = topSortedV.rbegin(); rit != topSortedV.rend(); rit++) {
-        int i = *rit;
-        if (!explored[i]) {
-            expressPathDfs(i, explored, expressPaths);
+        int parent = *rit;
+        if (expressPaths[parent].pathCost == INT_MIN) {
+            expressPaths[parent].pathCost = vertices[parent].cost;
+            expressPaths[parent].pathLength = 0;
+        }
+        for (int child : adjacencyList.getNeighbours(parent)) {
+            if (vertices[parent].scc == vertices[child].scc || vertices[child].cost < vertices[parent].cost) {
+                continue;
+            }
+            int cost = expressPaths[parent].pathCost + vertices[child].cost;
+            int length = expressPaths[parent].pathLength + 1;
+            if (cost > expressPaths[child].pathCost ||
+                (cost == expressPaths[child].pathCost && length > expressPaths[child].pathLength)) {
+                expressPaths[child].pathCost = cost;
+                expressPaths[child].pathLength = length;
+                if (expressPaths[child].pathCost > maxPathCost ||
+                    (expressPaths[child].pathCost == maxPathCost && expressPaths[child].pathLength > maxPathLength)) {
+                    maxPathCost = expressPaths[child].pathCost;
+                    maxPathLength = expressPaths[child].pathLength;
+                }
+            }
         }
     }
     printf("%d %d\n", maxPathCost, maxPathLength);
@@ -147,7 +151,7 @@ Graph buildGraph() {
     Pair p = readLine();
     int numV = p.first;
     int numE = p.second;
-    Graph g = Graph(numV, numE);
+    Graph g = Graph(numV);
     for (int i = 0; i < numE; i++) {
         p = readLine();
         g.addEdge(p.first, p.second);

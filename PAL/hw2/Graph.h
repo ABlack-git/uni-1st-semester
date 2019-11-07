@@ -6,24 +6,24 @@
 #define HW2_GRAPH_H
 
 #include <stack>
+#include <climits>
 #include "AdjacencyList.h"
 
 struct Vertex {
     int desc = -1;
     int lowLink = -1;
     int cost = -1;
+    int scc = -1;
 };
 
 struct Path {
-    int pathCost = 0;
-    int pathLength = 0;
+    int pathCost = INT_MIN;
+    int pathLength = INT_MIN;
 };
 
 class Graph {
 private:
     int numVertices;
-    int numEdges;
-    int sccNum;
     int maxPathCost;
     int maxPathLength;
     Vertex *vertices;
@@ -35,7 +35,7 @@ private:
     void expressPathDfs(int vertex, bool *visited, Path *expressPaths);
 
 public:
-    Graph(int numV, int numE);
+    Graph(int numV);
 
     void printGraph();
 
