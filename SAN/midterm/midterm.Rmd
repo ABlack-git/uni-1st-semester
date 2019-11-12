@@ -1,0 +1,34 @@
+---
+title: "midterm"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+usArrests <- read.csv("USArrests.csv")
+advertising <- read.csv("Advertising.csv")
+```
+
+##
+Following graph shows boxplot of Rape attribute. Two dots are outliers of the data. Horizontal bold line in the box is the median value of the dataset (or 50th percintile). This value is basically bigger than 50% of the data. The lower line of box is the 25th percentile, the highest line of the box is the 75th percetile. Whiskers are dotet lines. Whiskers represent top and bottom 25% of the data. And lines on the edge of the whiskers are min and max values that are not outliers.
+
+Correlation between UrbanPop and Murder variables is 0.069, which means that there is no significant linear relation between these to variables and this is also can be seen from the following plot.
+```{r usarrest}
+boxplot(usArrests$Rape)
+cor(usArrests[,c("Murder", "Assault", "UrbanPop", "Rape")])
+plot(usArrests$UrbanPop, usArrests$Murder)
+```
+
+## 
+
+```{r advertising}
+radModel<- lm(sales~radio, advertising)
+summary(radModel)
+newsModel <- lm(sales~newspaper, advertising)
+summary(newsModel)
+plot(advertising$radio, advertising$sales)
+abline(radModel)
+plot(advertising$newspaper, advertising$sales)
+abline(newsModel)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

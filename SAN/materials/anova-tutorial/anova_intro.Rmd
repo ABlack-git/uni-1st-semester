@@ -1,0 +1,68 @@
+---
+title: "Introduction to ANOVA"
+output:
+  html_document:
+    df_print: paged
+---
+
+### Generate input data 
+
+The example demonstrates an ANOVA application to artificial data. This application is illustrative as it is always clear whether the null hypothesis holds (effect_size is zero) or not (any other effect size) and what is the effect strength of the independent variable (it is easier to fail to reject the null hypothesis for small effect sizes). First, we will introduce the dataset. Let us assume that we carry out a medical study where we test the influence of medication on patient health. More technically, we study the relationship between a categorical variable treatment (none, A, B, C) and a continuous variable survival (mesasured in days after the beginning of treatment).
+```{r}
+treatment<-factor(c(rep("none",30),rep("A",20),rep("B",20),rep("C",15)))
+effect_size<-100 # the patients treated with C truly on avarage live 100 days more than others, A and B do not help at all
+survival<-rnorm(length(treatment),1000,300)+effect_size*as.numeric(treatment=="C") # survival typically has an exponential or lognormal distribution, in real datasets we would need to make a data transformation before running the future tests
+medstudy<-data.frame(treatment,survival)
+boxplot(survival~treatment,medstudy,xlab="Treatment",ylab="Survival")
+```
+
+### Understand ANOVA
+
+We will run ANOVA and understand the ANOVA table through recomputing all the individual reported statistics. The test outcome depends on the effect size set above, try to change its value and see its influence.
+
+```{r}
+aov(survival~treatment,medstudy) # run anova
+summary(aov(survival~treatment,medstudy)) # get a more detailed report, the F-test outcome on top of the previous run
+treatment_Df<-length(levels(treatment))-1 # calculate the stats reported in the table above once more
+Residuals_Df<-length(treatment)-length(levels(treatment))
+tsmeans<-aggregate(survival~treatment,FUN=mean) # calculate treatment level survival means, auxiliary var
+treatment_Sum_Sq<-sum((tsmeans$survival-mean(survival))^2*table(treatment))
+Residuals_Sum_Sq<-sum(sapply(levels(treatment),function(x){sum((survival[treatment==x]-tsmeans$survival[tsmeans$treatment==x])^2)}))
+Total_Sum_Sq<-sum((survival-mean(survival))^2)
+Total_Sum_Sq<-treatment_Sum_Sq+Residuals_Sum_Sq # the between groups variability and the within groups variability must sum to the total variability
+treatment_Mean_Sq<-treatment_Sum_Sq/treatment_Df
+Residuals_Mean_Sq<-Residuals_Sum_Sq/Residuals_Df
+F_value<-treatment_Mean_Sq/Residuals_Mean_Sq
+Pr_F<-pf(F_value,treatment_Df,Residuals_Df,lower.tail=F) # use F-distribution function to find the p-value, compare it with an alpha-value (typically 0.05)
+x <- seq(0, 5, length = 100)
+plot(x, df(x = x, df1 = treatment_Df, df2 = Residuals_Df),type="l",lwd=2,col="blue",xlab="x",ylab="f(x)") # plot F-distribution with the given parameters
+abline(v=F_value,col="red")
+```
+
+The recomputed values match those reported in the ANOVA table above. To exemplify, the between groups variability is `r treatment_Sum_Sq`, the within groups variability is `r Residuals_Sum_Sq`, the value of F statistics is 'r F_value'. The p-value of the whole test is `r Pr_F`.
+
+### Compare with simple linear regression
+
+ANOVA outcome matches the outcome of simple linear regression followed by the Fisher test. In fact, ANOVA calls lm to each stratum (way of treatment). Exactly the same is done when lm is applied to a problem with a categorical independent variable.
+
+```{r}
+anova<-aov(survival~treatment,medstudy) # run anova again
+coefficients(anova)
+lreg<-lm(survival~treatment,medstudy ) # compare with lm
+coefficients(lreg)
+summary(lreg) # the final F-statistic that evaluates the linear model as a whole exactly matches the previously reported ANOVA p-value, ANOVA enables nested comparisons between linear models
+```
+
+Finally, we will show that **ANOVA shows higher power than a sequence of t-test trials followed by Bonferroni correction**. Assume, that the effect_size is non zero. The null hypothesis should be rejected, the smaller the p-values the more powerful the test. Let us compare the previously reported ANOVA p-value with the value reached by a sequence of t-tests:
+
+```{r}
+t.test(survival[treatment=="A"],survival[treatment=="B"]) # an example for simple two-group comparison
+all.t.tests<-unlist(sapply(levels(treatment),function(x){sapply(levels(treatment)[levels(treatment)>x], function(y) t.test(survival[treatment==x],survival[treatment==y])$p.value)})) # perform a sequence of t-tests, 
+p.adjust(all.t.tests,method="bonferroni") # apply Bonferroni correction, compensates for multiple comparisons
+all.t.tests*6 # equals simple multiplication by 4*3/2=6 with thresholding to 1
+```
+Obviously, the ANOVA p-value was `r Pr_F`, the p-value resulting from a sequence of t.tests is `r min(p.adjust(all.t.tests,method="bonferroni"))`. The smaller p-value is an (indirect) evidence of higher power to reject the null hypothesis when it truly does not hold.
+
+### Independent work
+
+Change the effect_size, try multiple runs, see the changes. Advanced students may implement a more robust evaluation that systematically generates a representative effect_size sequence and performs repetitive evaluation for each setting (run 10 times with different sample). The analysis coudl be concluded with comprehensive graphs showing the relationship between the effect_size and p-values in both the ways of testing (ANOVA vs t.tests).

@@ -1,0 +1,246 @@
+---
+title: "Confirmation analysis"
+author: "Maksym Polovnikov"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+#### Introduction
+The aim of this assignment is to get familiar with multivariate confirmation analysis.
+As such, the objective of confirmation analysis is to test hypotheses or theories model. These models could be based on a previous empirical research.
+For this purpose, you will use multivariate analysis of variance (MANOVA)
+to test your hypothesis about given data.
+
+The deadline for this assignment is 4.11.2019.
+
+### Input data
+In this tutorial, we will work with a dataset that aims to the quality of potatoes growing in Oregon (for more details see [1]). Each potato is determined
+by its size, area, holding temperature, holding period, and cooking method.
+Overall quality consists of three aspects: texture score, flavor score, and
+moistness score. In this context, the properties of potatoes could be seen as
+independent variables; on the other hand, the quality of potatoes are dependent variables. For loading of the dataset, you can use a prepared function
+`Load`:
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#load the dataset
+Load <- function(path = "potato.dat"){
+  potatoData <- read.table(path, header = FALSE)
+  colnames(potatoData) <- c("Area", "Size" ,"Temp", "Period", "Method", "Texture", "Flavor", "Moistness")
+  potatoData$Area <- as.factor(potatoData$Area)
+  potatoData$Size <- as.factor(potatoData$Size)
+  potatoData$Temp <- as.factor(potatoData$Temp)
+  potatoData$Period <- as.factor(potatoData$Period)
+  potatoData$Method <- as.factor(potatoData$Method)
+  return(potatoData)
+}
+
+source("boxTest.R")
+library(mvnormtest)
+library(MVN)
+
+#load the dataset
+potatoData <- Load()
+```
+
+### MANOVA
+There are four main theoretical issues to be considered before running MANOVA.
+Not surprisingly, MANOVA has similar assumptions to ANOVA but extended to the multivariable case:
+
+* **Independence**: Observations should be statistically independent.
+* **Random sampling**: Data are randomly sampled from the population
+of interest.
+* **Multivariate normality**: Dependent variables are multivariate normally distributed within each group of the independent variables, which
+are categorical.
+* **Homogeneity of covariance matrices**: The population covariance
+matrices of each group are equal.
+
+Take the initial assumptions granted. The assumption of multivariate normality can be tested using R with a test known as the Shapiro test implemented in mshapiro.test in `mvnormtest` package. The assumption of
+equality of covariance matrices is often tested using Box’s test that is implemented in `BoxMTest` function in `boxTest.R` file or as a `BoxM` function in biotools package.
+
+### Step by Step
+You should go through the following steps:
+
+1. Formalize your MANOVA hypothesis.
+2. Visualize your data using plot, boxplot, etc. If data have more than two
+dimensions project them to lower dimmensionionality. (Optional: use a dimensionality reduction method instead.)
+3. Check the assumptions for MANOVA model.
+4. Use MANOVA to test your hypothesis.
+5. Discuss the obtained results (the meaning of the individual statistics,
+comparison with the visual analysis ad 2, practical implications), compare with the results of simpler MANOVA alternatives (e.g. repeated
+ANOVA).
+
+### Submission Form
+Submit your solution to the upload system. Submit the directory you have downloaded with only this file modified. 
+Write all your code and answers directly into this file and leave the others unmodified.
+
+# Hypothesis formulation
+
+Let $\mu_{\mathbf{i}} \in \mathbb{R}^3$ denote the vector of population means of each score for the group $i$. Then hypothesis can be stated as follows:
+
+$H_0 : \mu_{\mathbf{1}} = \mu_{\mathbf{2}} = \dots = \mu_{\mathbf{g}}$ ,
+$H_a : \mu_{\mathbf{ik}} \neq \mu_{\mathbf{jk}}$ for at least one $i \neq j$ and at least one $k$
+
+This way, we are testing whether all potato groups do not vary in quality.
+In order to do this, we should specify the grouping of data samples. Possible options are:
+* Perform one-way MANOVA for each independent categorical variable or selected categorical variables
+* Perform multivariate MANOVA for each independent variables and their interactions
+To take a more simple way, for the first approuch we will select only one variable and it's "period" due to seasonality.
+
+
+### Independet variables visualisation
+```{r plots, echo = FALSE}
+
+
+
+boxplot(potatoData[potatoData$Temp == 1, "Texture"], potatoData[potatoData$Temp == 2, "Texture"],
+        potatoData[potatoData$Temp == 1, "Flavor"], potatoData[potatoData$Temp == 2, "Flavor"],
+        potatoData[potatoData$Temp == 1, "Moistness"], potatoData[potatoData$Temp == 2, "Moistness"],
+        at = c(1, 2, 4, 5, 7, 8),
+        las = 2,
+        col = c(rgb(0.24, 0.592, 0.592), rgb(0.984, 0.467, 0.35)),
+        ylab = "Score",
+        xaxt='n')
+legend("topright", title="Temp",
+  	c("1","2"), fill=c(rgb(0.24, 0.592, 0.592), rgb(0.984, 0.467, 0.35)), horiz = TRUE)
+axis(1, at=c(1.5, 4.5, 7.5), labels=c("Texture", "Flavor", "Moistness"), las=0)
+
+
+boxplot(potatoData[potatoData$Size == 1, "Texture"], potatoData[potatoData$Size == 2, "Texture"],
+        potatoData[potatoData$Size == 1, "Flavor"], potatoData[potatoData$Size == 2, "Flavor"],
+        potatoData[potatoData$Size == 1, "Moistness"], potatoData[potatoData$Size == 2, "Moistness"],
+        at = c(1, 2, 4, 5, 7, 8),
+        las = 2,
+        col = c(rgb(0.24, 0.592, 0.592), rgb(0.984, 0.467, 0.35)),
+        ylab = "Score",
+        xaxt='n')
+legend("topright", title="Size",
+  	c("1","2"), fill=c(rgb(0.24, 0.592, 0.592), rgb(0.984, 0.467, 0.35)), horiz = TRUE)
+axis(1, at=c(1.5, 4.5, 7.5), labels=c("Texture", "Flavor", "Moistness"), las=0)
+
+
+boxplot(potatoData[potatoData$Period == 1, "Texture"], potatoData[potatoData$Period == 2, "Texture"],
+        potatoData[potatoData$Period == 3, "Texture"], potatoData[potatoData$Period == 4, "Texture"],
+        potatoData[potatoData$Period == 1, "Flavor"], potatoData[potatoData$Period == 2, "Flavor"],
+        potatoData[potatoData$Period == 3, "Flavor"], potatoData[potatoData$Period == 4, "Flavor"],
+        potatoData[potatoData$Period == 1, "Moistness"], potatoData[potatoData$Period == 2, "Moistness"],
+        potatoData[potatoData$Period == 3, "Moistness"], potatoData[potatoData$Period == 4, "Moistness"],
+        at = c(1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14),
+        las = 2,
+        col = c(rgb(0.24, 0.592, 0.592), rgb(0.09, 0.263, 0.659), rgb(0.984, 0.671, 0.39), rgb(0.984, 0.467, 0.35)),
+        ylab = "Score",
+        xaxt='n')
+legend("topright", title="Period",
+  	c("1","2", "3", "4"), fill=c(rgb(0.24, 0.592, 0.592), rgb(0.09, 0.263, 0.659), rgb(0.984, 0.671, 0.39), rgb(0.984, 0.467, 0.35)),
+  	horiz = TRUE)
+axis(1, at=c(2.5, 7.5, 12.5), labels=c("Texture", "Flavor", "Moistness"), las=0)
+
+boxplot(potatoData[potatoData$Area == 1, "Texture"], potatoData[potatoData$Area == 2, "Texture"],
+        potatoData[potatoData$Area == 1, "Flavor"], potatoData[potatoData$Area == 2, "Flavor"],
+        potatoData[potatoData$Area == 1, "Moistness"], potatoData[potatoData$Area == 2, "Moistness"],
+        at = c(1, 2, 4, 5, 7, 8),
+        las = 2,
+        col = c(rgb(0.24, 0.592, 0.592), rgb(0.984, 0.467, 0.35)),
+        ylab = "Score",
+        xaxt='n')
+legend("topright", title="Area",
+  	c("1","2"), fill=c(rgb(0.24, 0.592, 0.592), rgb(0.984, 0.467, 0.35)), horiz = TRUE)
+axis(1, at=c(1.5, 4.5, 7.5), labels=c("Texture", "Flavor", "Moistness"), las=0)
+
+
+
+boxplot(potatoData[potatoData$Method == 1, "Texture"], potatoData[potatoData$Method == 2, "Texture"],
+        potatoData[potatoData$Method == 3, "Texture"], potatoData[potatoData$Method == 4, "Texture"],
+        potatoData[potatoData$Method == 5, "Texture"],
+        potatoData[potatoData$Method == 1, "Flavor"], potatoData[potatoData$Method == 2, "Flavor"],
+        potatoData[potatoData$Method == 3, "Flavor"], potatoData[potatoData$Method == 4, "Flavor"],
+        potatoData[potatoData$Method == 5, "Flavor"],
+        potatoData[potatoData$Method == 1, "Moistness"], potatoData[potatoData$Method == 2, "Moistness"],
+        potatoData[potatoData$Method == 3, "Moistness"], potatoData[potatoData$Method == 4, "Moistness"],
+        potatoData[potatoData$Method == 5, "Moistness"],
+        at = c(1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17),
+        las = 2,
+        col = c(rgb(0.24, 0.592, 0.592), rgb(0.09, 0.263, 0.659), rgb(0.984, 0.671, 0.39),
+                rgb(0.984, 0.467, 0.35), rgb(0.27, 0.765, 0.118)),
+        ylab = "Score",
+        xaxt='n')
+legend("topright", title="Method",
+  	c("1","2", "3", "4", "5"), fill=c(rgb(0.24, 0.592, 0.592), rgb(0.09, 0.263, 0.659),
+  	                             rgb(0.984, 0.671, 0.39), rgb(0.984, 0.467, 0.35), rgb(0.27, 0.765, 0.118)),
+  	horiz = TRUE)
+axis(1, at=c(3, 9, 15), labels=c("Texture", "Flavor", "Moistness"), las=0)
+```
+
+```{r corr}
+plot(potatoData$Texture, potatoData$Flavor)
+plot(potatoData$Texture, potatoData$Moistness)
+
+plot(potatoData$Flavor, potatoData$Moistness)
+
+cor(potatoData[, c("Texture", "Flavor", "Moistness")])
+```
+
+
+
+# Assumption verification
+
+## Multivariate normality test
+
+```{r multivariate_normal}
+selected.cat <- potatoData[c("Period", "Texture", "Flavor", "Moistness")]
+U1 <- as.matrix(selected.cat[selected.cat$Period == 1, c("Texture", "Flavor", "Moistness")])
+U2 <- as.matrix(selected.cat[selected.cat$Period == 2, c("Texture", "Flavor", "Moistness")])
+U3 <- as.matrix(selected.cat[selected.cat$Period == 3, c("Texture", "Flavor", "Moistness")])
+U4 <- as.matrix(selected.cat[selected.cat$Period == 4, c("Texture", "Flavor", "Moistness")])
+mshapiro.test(t(U1))
+mshapiro.test(t(U2))
+mshapiro.test(t(U3))
+mshapiro.test(t(U4))
+```
+We can see a strong evidence against null hypothesis of multivariate normality in the second group. In other cases it
+is ok, which can be due outliers. We can remove tha, with Mehalanobis' distance:
+
+```{r remove_outliers}
+dependent <- c("Texture", "Flavor", "Moistness")
+x <- selected.cat[selected.cat$Period == 2, dependent]
+D2 <- mahalanobis(x, colMeans(x), cov(x))
+sort(D2, decreasing = TRUE)
+```
+
+```{r multivariate_normal_2}
+selected.cat <- selected.cat[-c(148, 68, 48, 108), ]
+U2 <- as.matrix(selected.cat[selected.cat$Period == 2, c("Texture", "Flavor", "Moistness")])
+mshapiro.test(t(U2))
+```
+
+## Homogeniety of covariance matrices
+
+```{r covariance}
+X <- as.matrix(selected.cat[c("Texture", "Flavor", "Moistness")])
+l <- selected.cat$Period
+BoxMTest(X, l)
+```
+# MANOVA application
+
+```{r manova}
+res.man <- manova(cbind(Texture, Flavor, Moistness) ~ Period, data = selected.cat)
+summary(res.man)
+```
+
+In this case we can see some difference in scores and that's why MANOVA tells us that there is a strong evidence against the null hypothesis.
+
+# Results
+
+As a result we can reject null hypothesis with high significance level, which means that period variable affects quality scores. 
+```{r anova}
+summary.aov(res.man)
+plot(selected.cat$Period, selected.cat$Flavor)
+```
+
+ANOVA performed on each dependent variable confirms the result and additionally suggests that period variable affects only flavor score.
+
+### References
+[1] Mackey, Stockman: Cooking Quality of Oregon-Grown Russet Potatoes,
+American Potato Journal, pp. 395–407, 1958.
