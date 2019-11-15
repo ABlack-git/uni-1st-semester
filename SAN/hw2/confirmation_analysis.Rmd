@@ -1,0 +1,134 @@
+---
+title: "Confirmation analysis"
+author: "Andrii Zakharchenko"
+output: pdf_document
+---
+
+#### Introduction
+The aim of this assignment is to get familiar with multivariate confirmation analysis.
+As such, the objective of confirmation analysis is to test hypotheses or theories model. These models could be based on a previous empirical research.
+For this purpose, you will use multivariate analysis of variance (MANOVA)
+to test your hypothesis about given data.
+
+The deadline for this assignment is 4.11.2019.
+
+### Input data
+In this tutorial, we will work with a dataset that aims to the quality of potatoes growing in Oregon (for more details see [1]). Each potato is determined
+by its size, area, holding temperature, holding period, and cooking method.
+Overall quality consists of three aspects: texture score, flavor score, and
+moistness score. In this context, the properties of potatoes could be seen as
+independent variables; on the other hand, the quality of potatoes are dependent variables. For loading of the dataset, you can use a prepared function
+`Load`:
+
+```{r setup, include=TRUE, echo=TRUE, results='hide'}
+knitr::opts_chunk$set(echo = TRUE)
+
+#load the dataset
+Load <- function(path = "potato.dat"){
+  potatoData <- read.table(path, header = FALSE)
+  colnames(potatoData) <- c("Area", "Size" ,"Temp", "Period", "Method", "Texture", "Flavor", "Moistness")
+  potatoData$Area <- as.factor(potatoData$Area)
+  potatoData$Size <- as.factor(potatoData$Size)
+  potatoData$Temp <- as.factor(potatoData$Temp)
+  potatoData$Period <- as.factor(potatoData$Period)
+  potatoData$Method <- as.factor(potatoData$Method)
+  return(potatoData)
+}
+
+source("boxTest.R")
+library(mvnormtest)
+library(MVN)
+library(ggplot2)
+library(reshape2)
+library(ggpubr)
+library(gplots)
+#load the dataset
+potatoData <- Load()
+potatoMelted <- melt(potatoData, measure.vars=c("Texture", "Moistness", "Flavor"), value.name = "Score", variable.name="ScoreCategory")
+```
+
+### MANOVA
+There are four main theoretical issues to be considered before running MANOVA.
+Not surprisingly, MANOVA has similar assumptions to ANOVA but extended to the multivariable case:
+
+* **Independence**: Observations should be statistically independent.
+* **Random sampling**: Data are randomly sampled from the population
+of interest.
+* **Multivariate normality**: Dependent variables are multivariate normally distributed within each group of the independent variables, which are categorical.
+* **Homogeneity of covariance matrices**: The population covariance
+matrices of each group are equal.
+
+Take the initial assumptions granted. The assumption of multivariate normality can be tested using R with a test known as the Shapiro test implemented in mshapiro.test in `mvnormtest` package. The assumption of
+equality of covariance matrices is often tested using Box’s test that is implemented in `BoxMTest` function in `boxTest.R` file or as a `BoxM` function in biotools package.
+
+### Step by Step
+You should go through the following steps:
+
+1. Formalize your MANOVA hypothesis.
+Let's say we want to test if potato scores are affected by Temp
+
+This means that our $H_0: \mathbf{\mu_1}=\mathbf{\mu_2}$ where $\mu_i$ is mean vector of groups of length 3. We have only 2 grous in Temp and 3 independet variables.
+Alternative hypothesys is $H_a: \mu_{ik}\neq\mu_{jk}$ for $i\neq j$.
+Significance level is $\alpha=0.05$
+
+2. Visualize your data using plot, boxplot, etc. If data have more than two
+dimensions project them to lower dimmensionionality. (Optional: use a dimensionality reduction method instead.)
+```{r visualization}
+basePlot <-ggplot(potatoMelted, aes(x=ScoreCategory, y=Score))
+area <- basePlot + geom_boxplot(aes(fill=Area))
+size <- basePlot + geom_boxplot(aes(fill=Size))
+temp <- basePlot + geom_boxplot(aes(fill=Temp))
+method <- basePlot + geom_boxplot(aes(fill=Method))
+period <- basePlot + geom_boxplot(aes(fill=Period))
+ggarrange(area, size, temp, method, period, nrow=3, ncol=2)
+
+plotmeans(Texture~Temp, data = potatoData)
+plotmeans(Moistness~Temp, data = potatoData)
+plotmeans(Flavor~Temp, data = potatoData)
+```
+3. Check the assumptions for MANOVA model.
+```{r multivariate normality}
+responses <- c("Texture", "Moistness", "Flavor")
+mshapiro.test(t(potatoData[potatoData$Temp==1, responses]))
+mshapiro.test(t(potatoData[potatoData$Temp==2, responses]))
+```
+We see that the second normality test has a low p-value, which is the reason to reject hypothesis that population is normally distributed. Let's try to remove outliers to see if they have influence on Shapiro-Wilk test.
+
+```{r remove outliers}
+t1_moist_out<-boxplot(potatoData[potatoData$Temp == 1, "Moistness"])$out
+t1_flav_out<-boxplot(potatoData[potatoData$Temp == 1, "Flavor"])$out
+t2_flav_out<-boxplot(potatoData[potatoData$Temp == 2, "Flavor"])$out
+rm_idx<-which((potatoData$Temp == 1 & (potatoData$Moistness %in% t1_moist_out | potatoData$Flavor %in% t1_flav_out)) | (potatoData$Temp==2 & potatoData$Flavor %in% t2_flav_out))
+potatoDataNoOut <- potatoData[-rm_idx,]
+boxplot(potatoDataNoOut[potatoDataNoOut$Temp == 1, responses])
+boxplot(potatoDataNoOut[potatoDataNoOut$Temp == 2, responses])
+
+mshapiro.test(t(potatoDataNoOut[potatoDataNoOut$Temp == 1, responses]))
+mshapiro.test(t(potatoDataNoOut[potatoDataNoOut$Temp == 2, responses]))
+```
+We see that second group still violates normality assumtion even after we removed outliers, but since MANOVA is robust against assumptions violations we will continue.
+```{r Homogenity of cov matrices}
+BoxMTest(potatoDataNoOut[responses], potatoDataNoOut$Temp)
+```
+
+4. Use MANOVA to test your hypothesis.
+```{r manova}
+res.man<-manova(cbind(Texture, Flavor, Moistness)~Temp, data=potatoDataNoOut)
+res.man
+summary(res.man)
+```
+We see that $p<\alpha$ which means that we can reject the $H_0$, meaning that there is some reletionship between grouping by temprature and dependent variables.
+
+5. Discuss the obtained results (the meaning of the individual statistics,
+comparison with the visual analysis ad 2, practical implications), compare with the results of simpler MANOVA alternatives (e.g. repeated
+ANOVA).
+
+```{r}
+summary.aov(res.man)
+```
+
+From graphs in 2nd section we can see, that scores for Texture and Moistness differ depnding on Temp grpoup, however there is no difference for Flavor scores. Result of MANOVA test expectedly showed that means do differ and result of repeated ANOVA showed that means of Temp groups are not different for Flavor and that they are different for Texture and Moistness.
+
+### References
+[1] Mackey, Stockman: Cooking Quality of Oregon-Grown Russet Potatoes,
+American Potato Journal, pp. 395–407, 1958.
