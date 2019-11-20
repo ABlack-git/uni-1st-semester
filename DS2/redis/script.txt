@@ -1,0 +1,61 @@
+ECHO "This is redis database for imaginable police response unit"
+ECHO "Adding strings. Key status:team:id, value current status of response team"
+SET status:team:001 ON_PATROL
+SET status:team:077 FREE
+SET status:team:331 ON_CALL 
+SET status:team:312 FREE
+SET status:team:512 BUISY
+ECHO "Getting status of team 512"
+GET status:team:512
+ECHO "Updating status of team 312"
+GETSET status:team:312 BUISY
+ECHO "Deleting team 001"
+DEL status:team:001
+ECHO "Adding lists. teams:accident:id list of teams that responded to the accident with given id"
+RPUSH teams:accident:321 777 801
+RPUSH teams:accident:345 808 
+RPUSH teams:accident:213 909 090
+RPUSH teams:accident:124 101 102 103
+RPUSH teams:accident:123 007 077 134 256
+ECHO "Getting all vals from the list with id 123"
+LRANGE teams:accident:123 0 -1
+ECHO "Display and remove tail element of list 123"
+RPOP teams:accident:123
+ECHO "Deleting from list one occurence of 102"
+LREM teams:accident:124 1 102
+ECHO "Adding sets. Key is teams:distric_name. Set contains ids of teams that are available for response in a given district"
+SADD teams:north 123 823 812 613 002
+SADD teams:east 898 231 321 007
+SADD teams:west 213 090 909 808
+SADD teams:south 709 907 999 777
+SADD teams:downtown 333 005 077 011
+ECHO "Union of teams:east and teams:west sets"
+SUNION teams:east teams:west
+ECHO "Show all elements in teams:east set"
+SMEMBERS teams:east
+ECHO "Deleting element 823 from teams:north"
+SREM teams:north 823
+ECHO "Adding sorted lists. accidents:district_name, values accident_priority accident_id"
+ZADD accidents:north 3 313 2 111 1 011 6 554 
+ZADD accidents:east 7 808 3 211 2 606
+ZADD accidents:west 3 444 2 566 1 004
+ZADD accidents:south 10 566 13 707 22 060
+ZADD accidents:downtown 44 565 11 767 4 555
+ECHO "Get accident with highest priority"
+ZRANGE accidents:north -1 -1
+ECHO "Increment priority of element 111 in accidents:north by 3"
+ZINCRBY accidents:north 3 111
+ECHO "Deleting element 111 from accidents:north"
+ZREM accidents:north 111
+ECHO "Adding hashes. Key accident:id, fields: accident description, district where accident happened, location of accident"
+HMSET accident:321 description "Breaking and entering" district "north" location "Frodo street"
+HMSET accident:345 description "Homicide" district "east" location "Gendalf street"
+HMSET accident:213 description "Shop lifting" district "west" location "Sam street"
+HMSET accident:124 description "Robbery" district "downtown" location "Aragorn street"
+HMSET accident:123 description "Car theft" district "south" location "Mordor street"
+ECHO "Get location of accident 321"
+HGET accident:321 location
+ECHO "show fields and values of accident 123"
+HGETALL accident:123
+ECHO "Deleting location of hash 321"
+HDEL accident:321 location
