@@ -43,11 +43,6 @@ onto the new subspace.
 
 #### Step by step
 
-##### Load the dataset 
-```{r}
-
-```
-
 ##### Compute the within-scatter matrix 
 ```{r}
 ComputeWithinScatter <- function(data, n)
@@ -95,7 +90,7 @@ SolveEigenProblem <- function(withinMatrix, betweenMatrix, prior)
 ##### Visualize the results
 Project your data into lower-dimensional subspace, visualize this projection, and compare with PCA (see Fig. 1). Also, try to use scale/unscale version of `prcomp` function in R. Use the following code while filling in the lines marked as `TODO`.
 
-```{r, eval=FALSE}
+```{r}
 ComputeCentroids <- function(data, labels){
   yGroupedMean <- aggregate(as.data.frame(data), by = list(labels), FUN = mean)
   rownames(yGroupedMean) <- yGroupedMean[,1]
@@ -208,3 +203,5 @@ accLDA <- CrossvalidationLDA(mydata, labels, kfolds = 10)
 ```
 
 ##### Discuss given results.
+
+From the graphs above we can clearly see that LDA separates observation by categories way better than PCA. This is due to the fact that LDA and PCA optimize different quantities. LDA's primary task is to maximize the separability of classes, while PCA maximizes vairance of the data. 
