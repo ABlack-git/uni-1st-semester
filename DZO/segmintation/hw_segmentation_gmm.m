@@ -6,9 +6,11 @@ NUM_COMPS = 2;
 KMEANS_ITER = 100;
 
 % load RGB image and its labeling
-img = im2double(imread('images/flower.jpg'));
-lab_in = load_pixel_labeling('images/flower_brush.png');
+% img = im2double(imread('images/flower.jpg'));
+% lab_in = load_pixel_labeling('images/flower_brush.png');
 
+img = im2double(imread('images/llama.jpg'));
+lab_in = load_pixel_labeling('images/llama_brush.png');
 figure();
 imshow(compose_labeled_image(img, lab_in));
 title('Image and its initial labeling');

@@ -20,5 +20,10 @@ function cost = cost_unary(rgb, lab_in, priors1, means1, covs1, ...
 
 % TODO: Replace with your own implementation.
 cost = ones(2, size(rgb, 2));
-
+cost(1,lab_in==2)=Inf;
+cost(2,lab_in==1)=Inf;
+prob_1 = -log(gmm_prob(rgb, priors1, means1, covs1));
+prob_2 = -log(gmm_prob(rgb, priors2, means2, covs2));
+cost(1, lab_in ~= 2) = prob_1(lab_in ~= 2);
+cost(2, lab_in ~= 1) = prob_2(lab_in ~= 1);
 end

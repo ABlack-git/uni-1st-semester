@@ -38,15 +38,4 @@ dists = ones(1, h - 1);
     % Returns pairs of diagonal neighbours of i that are below i
     end
 
-if neighborhood_type == 4
-    M = 2*h*w - h - w;
-    pairs = zeros(2,M);
-    
-elseif neighborhood_type == 8
-    
-else 
-    error('Unsupported neighborhood type')
-end
-    
-
 end

@@ -15,20 +15,10 @@ function prob = gmm_prob(x, priors, means, covs)
 %     by the specified GMM distribution
 
 % TODO: Replace with your own implementation.
-
-    function p = mnormprob(x, mu, sigma)
-        x_t = x';
-        x_vec = x_t - repmat(mu', size(x_t,1),1); % NxD - row vector
-        inv_mult = x_vec/sigma; % <=> x_vec*inv(sigma)
-        exponential =exp(-0.5*inv_mult*x_vec');
-        p = (2*pi)^(-size(x,1)/2)*sqrt(1/det(sigma))*exponential;
-    end
-
-prob = zeros(size(x, 2),1);
+prob = zeros(1,size(x,2));
 K = size(priors,2);
 for k=1:K
-%     prob + priors(k)*
-    prob = mvnpdf(x',means(:,k)',covs(:,:,k));
+    prob = prob + priors(k)*mvnpdf(x', means(:,k)', covs(:,:,k))';
 end
-prob = prob';
+
 end

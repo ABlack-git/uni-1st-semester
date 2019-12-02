@@ -1,7 +1,7 @@
 close all;
 clear;
 
-% parameters
+%% parameters
 NUM_COMPS = 3;
 KMEANS_ITER = 100;
 NEIGH_TYPE = 8;
@@ -52,7 +52,7 @@ imagesc(reshape(cost_q(2,:), [h w]));
 axis image off;
 colorbar;
 title('Background costs');
-
+%%
 % build pairs of neighboring pixels for the input image
 [pairs, pair_dists] = build_neighborhood(h, w, NEIGH_TYPE);
 
