@@ -20,11 +20,28 @@ function lab_out = segmentation_graphcut(img, lab_in, ...
 %   lab_out [HxW (double)] output labeling of pixels; label 1 denotes
 %     foregroung pixel, label 2 background
 
-% TODO: Replace with your own implementation.
-lab_out = 2 * ones(size(lab_in));
-
 % NOTE: Use provided function lab = graphcut(cost_unary, pairs, cost_pair)
 %   in order to find the optimum labeling with respect to the specified
 %   unary costs, pixel pairs and their costs.
 
+[h, w, c] = size(img);
+rgb = reshape(img, [h * w, c])';
+
+% extract RGB triples labeled as foreground and background
+rgb_f = rgb(:,lab_in==1);
+rgb_b = rgb(:,lab_in==2);
+
+% estimate GMM for foreground and background pixels
+comps_f = kmeans(rgb_f', num_comps, 'MaxIter', kmeans_iter)';
+[priors_f, means_f, covs_f] = gmm_estimation(rgb_f, comps_f);
+comps_b = kmeans(rgb_b', num_comps, 'MaxIter', kmeans_iter)';
+[priors_b, means_b, covs_b] = gmm_estimation(rgb_b, comps_b);
+
+cost_q = cost_unary(rgb, lab_in, ...
+	priors_f, means_f, covs_f, priors_b, means_b, covs_b);
+[pairs, pair_dists] = build_neighborhood(h, w, neighborhood_type);
+cost_r = cost_pair(rgb, pairs, pair_dists, lambda1, lambda2);
+
+lab_out = graphcut(cost_q, pairs, cost_r);
+lab_out = reshape(lab_out, [h,w]);
 end

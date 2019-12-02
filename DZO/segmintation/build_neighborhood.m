@@ -25,28 +25,49 @@ function [pairs, dists] = build_neighborhood(h, w, neighborhood_type)
 % TODO: Replace with your own implementation.
 
 % vertical neighbors from the first column
-pairs = [1:(h-1); 2:h];
-dists = ones(1, h - 1);
 
-    function get_straight_pairs(i)
-    % Returns pairs for horizontal and vertical neighbours of node i 
-    % that a are on the left from i and below i
-    
-    end
-
-    function get_diagonal_neighbours(i)
-    % Returns pairs of diagonal neighbours of i that are below i
-    end
-
-if neighborhood_type == 4
-    M = 2*h*w - h - w;
-    pairs = zeros(2,M);
-    
-elseif neighborhood_type == 8
-    
-else 
-    error('Unsupported neighborhood type')
+function filter = get_filter(r,c, h, N)
+    indices = (c-1)*h+(r-1)+1;
+    filter = ones(1,N);
+    filter(indices)= 0;
+    filter = logical(filter);
 end
-    
+
+N = h*w;
+right_filter = get_filter(1:h, w, h, N);
+bot_filter = get_filter(h,1:w,h, N);
+left_filter = get_filter(1:h, 1, h, N);
+
+right_edges = [1:N; zeros(1,N)];
+bot_edges = [1:N; zeros(1,N)];
+
+right_edges = right_edges(:,right_filter);
+bot_edges = bot_edges(:,bot_filter);
+
+right_edges(2,:) = right_edges(1,:) + h;
+bot_edges(2,:) = bot_edges(1,:) + 1;
+
+pairs = [right_edges, bot_edges];
+dists = ones(1, size(pairs,2));
+if neighborhood_type == 4
+   return;
+end
+
+left_diag_e = [1:N; zeros(1,N)];
+right_diag_e = [1:N; zeros(1,N)];
+
+left_diag_e = left_diag_e(:, bot_filter & left_filter);
+right_diag_e = right_diag_e(:, bot_filter & right_filter);
+
+left_diag_e(2,:) = left_diag_e(1,:) - h + 1;
+right_diag_e(2,:) = right_diag_e(1,:) + h +1;
+
+p2 = [left_diag_e, right_diag_e];
+d2 = ones(1, size(p2,2))*sqrt(2);
+
+pairs = [pairs, p2];
+dists = [dists,d2];
+
+
 
 end

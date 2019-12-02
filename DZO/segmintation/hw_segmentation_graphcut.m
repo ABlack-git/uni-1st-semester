@@ -8,6 +8,8 @@ NEIGH_TYPE = 8;
 LAMBDA_1 = 5;
 LAMBDA_2 = 45;
 
+%%
+
 % load RGB image and its labeling
 img = im2double(imread('images/llama.jpg'));
 lab_in = load_pixel_labeling('images/llama_brush.png');
@@ -55,7 +57,6 @@ title('Background costs');
 %%
 % build pairs of neighboring pixels for the input image
 [pairs, pair_dists] = build_neighborhood(h, w, NEIGH_TYPE);
-
 fprintf('Expected %i neighbors, found %i neighbors.\n', ...
 	4 * h * w - 3 * h - 3 * w + 2, size(pairs, 2));
 
@@ -73,7 +74,7 @@ for k = 1:size(neigh_t, 2)
 	fprintf('\t(%i,%i): %f\n', tki, tkj, cost_r(tk));
 end
 
-% run graphcut segmentation
+%% run graphcut segmentation
 lab_seg = segmentation_graphcut(img, lab_in, NUM_COMPS, KMEANS_ITER, ...
 	NEIGH_TYPE, LAMBDA_1, LAMBDA_2);
 
