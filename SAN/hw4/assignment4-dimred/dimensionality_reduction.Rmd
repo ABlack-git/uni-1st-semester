@@ -6,6 +6,8 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library('FNN')
+library(tsne)
 ```
 
 ## Introduction
@@ -87,41 +89,53 @@ PlotPoints(mydata[,c(1,2)], mylabels, mycolors)
 An expected result (for *k* = 5) should look similar (not necessarily exactly the same) to following
 ![Example output](graph_12.pdf)
 
-```{r eval=FALSE}
-#ADD YOUR CODE HERE!
-#REMOVE eval=FALSE arguments
+```{r}
 
-#1.Determine the neighbors of each point (k-NN)
+Isomap <- function(in_data, k=5){
+  knns<-get.knn(in_data, k = k)
+  num_v = nrow(in_data)
+  max_float <- Inf
+  D <- matrix(max_float, nrow = num_v, ncol = num_v)
+  for (i in 1:num_v){
+    D[i,i] <- 0
+    for (j in 1:k){
+      v<-knns$nn.index[i,j] 
+      D[i,v]<-knns$nn.dist[i,j]
+      D[v,i]<-knns$nn.dist[i,j]
+    }
+  }
 
-#2.Construct a neighborhood graph.
-#Each point is connected to other if it is a K nearest neighbor.
-#Edge length equal to Euclidean distance.
-
-#3.Compute shortest path between two nodes. (Floyd-Warshall algorithm)
-
-#4.(classical) multidimensional scaling
-fit <- cmdscale(D,eig=TRUE, k=2)
-PlotPoints(fit$points, mylabels, mycolors)
+  for (l in 1:num_v) {
+    for (i in 1:num_v) {
+      for (j in 1:num_v) {
+        D[i,j] <- min(D[i,j], D[i,l]+D[l,j])
+      }
+    }
+  }
+ fit <- cmdscale(D,eig=TRUE, k=2)
+ return(fit)
+}
 ```
 
 3. **Visually compare PCA, ISOMAP and t-SNE** by plotting the word2vec data, embedded into 2D using the `Plotpoints` function. Try finding the optimal *k* value for ISOMAP's nearest neighbour.
-```{r eval=FALSE}
+```{r}
 #Principal component analysis
 fitPCA <- prcomp(mydata, center = TRUE, scale. = TRUE)
 PlotPoints(fitPCA$x[,c(1,2)], mylabels, mycolors)
 
-#t-SNE (T-Distributed Stochastic Neighbor Embedding)
-#install.packages('tsne')
-library(tsne)
+
+fit <- Isomap(mydata, k=5)
+PlotPoints(fit$points, mylabels, mycolors)
+
 fittsne <- tsne(mydata, k = 2)
 PlotPoints(fittsne, mylabels, mycolors)
 ```
 
 
 4. **Observe the effect of dimensionality reduction on a classiffication algorithm**. The supporting code in a function `Classify` performs training and testing of classification trees and gives the classification accuracy (percentage of correctly classified samples) as its result. Compare the accuracy of prediction on plain data, PCA, ISOMAP and t-SNE.
-```{r eval=FALSE}
+```{r}
 #classify ISOMAP
-#accISOMAP <- Classify(as.data.frame(fit$points), mycolors$V1, 50)
+accISOMAP <- Classify(as.data.frame(fit$points), mycolors$V1, 50)
 
 #classify PCA
 accPCA <- Classify(as.data.frame(fitPCA$x), mycolors$V1, 50)
@@ -130,7 +144,7 @@ accPCA <- Classify(as.data.frame(fitPCA$x), mycolors$V1, 50)
 accTSNE <- Classify(as.data.frame(fittsne), mycolors$V1, 50)
 
 #PLOT results
-#print(paste("ISOMAP ACC:", mean(accISOMAP)))
+print(paste("ISOMAP ACC:", mean(accISOMAP)))
 print(paste("PCA ACC:", mean(accPCA)))
 print(paste("t-SNE ACC:", mean(accTSNE)))
 ```
