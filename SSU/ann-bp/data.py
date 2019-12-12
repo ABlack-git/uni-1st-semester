@@ -1,6 +1,6 @@
 import gzip
 import os
-import urllib
+import urllib.request
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -94,7 +94,7 @@ def load_MNIST():
     for label, (name, n_images) in files.items():
         if not os.path.exists(name):
             print('downloading: {}'.format(name))
-            urllib.urlretrieve(
+            urllib.request.urlretrieve(
                 'http://yann.lecun.com/exdb/mnist/{}'.format(name), name)
         with gzip.open(name) as bytestream:
             if label.startswith('X'):

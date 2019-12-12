@@ -3,3 +3,6 @@
 *.zip
 *.o
 **/cmake-build-debug/**
+**/__pycache__/**
+*.gz
+*.tar.gz

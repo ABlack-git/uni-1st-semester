@@ -10,7 +10,6 @@ class LinearLayer(object):
         :param rng: random number generator used for initialization
         :param name:
         """
-        # super(LinearLayer, self).__init__()
         self.n_inputs = n_inputs
         self.n_units = n_units
         self.rng = rng
@@ -30,6 +29,8 @@ class LinearLayer(object):
         :param X: layer inputs, shape (n_samples, n_inputs)
         :return: layer output, shape (n_samples, n_units)
         """
+        if len(X.shape) < 2:
+            X = np.expand_dims(X, axis=0)
         return np.dot(X, self.W) + self.b
 
     def delta(self, Y, delta_next):
@@ -42,7 +43,7 @@ class LinearLayer(object):
         shape (n_samples, n_units)
         :return: delta vector from this layer, shape (n_samples, n_inputs)
         """
-        return np.dot(delta_next, np.transpose(self.W))
+        return np.dot(delta_next, self.W.T)
 
     def grad(self, X, delta_next):
         """
@@ -56,7 +57,9 @@ class LinearLayer(object):
         of dW and db are the same as the shapes of the actual parameters
         (self.W, self.b)
         """
-        pass  # TODO IMPLEMENT
+        dw = np.dot(X.T, delta_next) / delta_next.shape[0]
+        db = np.sum(delta_next, axis=0) / delta_next.shape[0]
+        return [dw, db]
 
     def initialize(self):
         """
@@ -87,13 +90,14 @@ class LinearLayer(object):
 
 class ReLULayer(object):
     def __init__(self, name):
-        # super(ReLULayer, self).__init__()
         self.name = name
 
     def has_params(self):
         return False
 
     def forward(self, X):
+        if len(X.shape) < 2:
+            X = np.expand_dims(X, axis=0)
         return np.maximum(X, 0)
 
     def delta(self, Y, delta_next):
@@ -111,35 +115,42 @@ class ReLULayer(object):
 
 class SoftmaxLayer(object):
     def __init__(self, name):
-        # super(SoftmaxLayer, self).__init__()
         self.name = name
 
     def has_params(self):
         return False
 
-    def forward(self, X):
+    @staticmethod
+    def forward(X):
         """
 
         :param X:
         :return: shape (n_samples, n_inputs)
         """
-        # for stability subtract max(X)
-        # TODO: subtract max from rows (use tile?)
-        shift_x = X - np.max(X, axis=0)
+        if len(X.shape) < 2:
+            X = np.expand_dims(X, axis=0)
+        shift_x = X - np.tile(np.max(X, axis=1), (X.shape[1], 1)).transpose()
         exp_x = np.exp(shift_x)
         norm_factor = np.sum(exp_x, axis=1)
-        return np.divide(exp_x, norm_factor)
+        return np.divide(exp_x, np.tile(norm_factor, (exp_x.shape[1], 1)).transpose())
+
+    def _get_derivative(self, y):
+        y_mat = np.tile(y.reshape(y.shape[0], 1), y.shape[0])
+        return np.diag(y) - (y_mat * y_mat.transpose())
 
     def delta(self, Y, delta_next):
-        return None
+        delta = np.zeros((Y.shape[0], Y.shape[1]))
+        for n_sample in range(Y.shape[0]):
+            delta[n_sample] = np.dot(delta_next[n_sample], self._get_derivative(Y[n_sample]))
+        return delta
 
 
 class LossCrossEntropy(object):
     def __init__(self, name):
-        # super(LossCrossEntropy, self).__init__()
         self.name = name
 
-    def forward(self, X, T):
+    @staticmethod
+    def forward(X, T):
         """
         Forward message.
         :param X: loss inputs (outputs of the previous layer),
@@ -148,9 +159,9 @@ class LossCrossEntropy(object):
         :param T: one-hot encoded targets, shape (n_samples, n_inputs)
         :return: layer output, shape (n_samples, 1)
         """
-        assert X.shape == T.shape, f"Shape of input ({X.shape}) is not equal " \
-            f"to shape of true labels ({T.shape})"
-        return -1 * np.sum(np.dot(T, np.log(X)))
+        if len(X.shape) < 2:
+            X = np.expand_dims(X, axis=0)
+        return -1 * np.sum(T * np.log(X), axis=1)
 
     def delta(self, X, T):
         """
@@ -161,18 +172,17 @@ class LossCrossEntropy(object):
         :param T: one-hot encoded targets, shape (n_samples, n_inputs)
         :return: delta vector from the loss layer, shape (n_samples, n_inputs)
         """
-        pass  # TODO IMPLEMENT
+        # X here is output of softmax
+        return -1 * np.divide(T, X)
 
 
 class LossCrossEntropyForSoftmaxLogits(object):
     def __init__(self, name):
-        # super(LossCrossEntropyForSoftmaxLogits, self).__init__()
-        self.softmax = SoftmaxLayer(name + "_softmax")
-        self.cross_entropy_loss = LossCrossEntropy(name + "_cross_entropy_loss")
         self.name = name
 
     def forward(self, X, T):
-        self.cross_entropy_loss.forward(self.softmax.forward(X), T)
+        return LossCrossEntropy.forward(SoftmaxLayer.forward(X), T)
 
     def delta(self, X, T):
-        pass  # TODO IMPLEMENT
+        # X here is output of linear layer
+        return SoftmaxLayer.forward(X) - T

@@ -40,7 +40,7 @@ class MLP(object):
         """
         layers = self.layers + (self.output_layers if output_layers else [])
         if last_layer is not None:
-            assert isinstance(last_layer, basestring)
+            assert isinstance(last_layer, str)  # Python 2 will be dead starting from 1.1.2020
             layer_names = [layer.name for layer in layers]
             layers = layers[0: layer_names.index(last_layer) + 1]
         for layer in layers:
@@ -63,7 +63,33 @@ class MLP(object):
         :param T: target labels, shape (n_samples, n_outputs)
         :return: a dict of records in which key is the layer.name and value the output of grad function
         """
-        pass  # TODO IMPLEMENT
+        layer_out = [X]
+        grads = dict()
+        layer_input = X
+        for layer in self.layers:
+            layer_input = layer.forward(layer_input)
+            layer_out.append(layer_input)
+
+        layer_out.reverse()
+        delta = self.loss.delta(layer_out[0], T)
+
+        for i, layer in enumerate(reversed(self.layers)):
+            delta_next = None
+            if i != len(self.layers) - 1:
+                delta_next = layer.delta(layer_out[i], delta)
+            if layer.has_params():
+                grads[layer.name] = layer.grad(layer_out[i + 1], delta)
+
+            delta = delta_next
+
+        return grads
+
+    def get_weights_mean(self):
+        means = dict()
+        for layer in self.layers:
+            if layer.has_params():
+                means[layer.name] = np.abs(np.mean(layer.W))
+        return means
 
 
 # ---------------------------------------
@@ -103,6 +129,8 @@ def train(net, X_train, T_train, batch_size=1, n_epochs=2, eta=0.1, X_test=None,
         acc_train = accuracy(Y, T_train)
         run_info['loss_train'].append(loss_train)
         run_info['acc_train'].append(acc_train)
+        means = net.get_weights_mean()
+        run_info['weight_means'].append(means)
         if X_test is not None:
             Y = net.propagate(X_test)
             loss_test = net.loss.forward(Y, T_test)
@@ -184,6 +212,8 @@ def experiment_XOR():
     print(net.propagate(X))
     data.plot_2D_classification(X, T, net)
     plt.show()
+    plot_means(run_info)
+    plt.show()
 
 
 def experiment_spirals():
@@ -214,10 +244,14 @@ def experiment_spirals():
         run_info_dict[name] = run_info
         # plot_spirals(X_train, T_train, net)
         # plt.show()
-        # plot_convergence(run_info)
-        # plt.show()
+        plot_convergence(run_info)
+        plt.show()
+
     plot_test_accuracy_comparison(run_info_dict)
     plt.show()
+    with open('spirals_run_info.p', 'wb') as f:
+        pickle.dump(run_info, f)
+
     # plt.savefig('spiral.pdf') # you can instead save figure to file
 
 
@@ -252,16 +286,43 @@ def experiment_MNIST():
     run_info = train(net, X_train, T_train, batch_size=3000, eta=1e-1,
                      X_test=X_test, T_test=T_test, n_epochs=100,
                      verbose=True)
-    # plot_convergence(run_info)
-    # plt.show()
+
+    plot_convergence(run_info)
+    plt.show()
+    plot_means(run_info)
+    plt.show()
 
     with open('MNIST_run_info.p', 'wb') as f:
         pickle.dump(run_info, f)
 
 
+def plot_means(run_info):
+    means_lists = defaultdict(list)
+    for mean_obj in run_info['weight_means']:
+        for key, value in mean_obj.items():
+            means_lists[key].append(value)
+    for key, value in means_lists.items():
+        norm_means = np.array(value) / value[0]
+        # norm_means = value
+        plt.plot(norm_means, label=key)
+
+    plt.xlabel('epoch')
+    plt.ylabel('Weights mean')
+    plt.legend()
+
+
+def load_pickle_and_plot(pickle_path):
+    with open(pickle_path, 'rb') as f:
+        run_info = pickle.load(f)
+        plot_means(run_info)
+        plt.show()
+
+
 if __name__ == '__main__':
-    experiment_XOR()
+    # experiment_XOR()
 
     # experiment_spirals()
 
     # experiment_MNIST()
+
+    load_pickle_and_plot('MNIST_run_info.p')
