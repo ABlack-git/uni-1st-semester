@@ -1,0 +1,162 @@
+[
+  {
+    "_id": "1978-03-12/1",
+    "date": {
+      "year": 1978,
+      "month": 3,
+      "day": 12
+    },
+    "victims": [
+      {
+        "name": {
+          "first": "John1",
+          "last": "Doe1"
+        },
+        "contacts": {
+          "mobile": "555-111-111"
+        }
+      }
+    ],
+    "suspects": [
+      "ledbea"
+    ],
+    "crimeType": "ROBBERY",
+    "status": "CLOSED"
+  },
+  {
+    "_id": "2001-04-12/1",
+    "date": {
+      "year": 2001,
+      "month": 4,
+      "day": 12
+    },
+    "victims": [
+      {
+        "name": {
+          "first": "John2",
+          "last": "Doe2"
+        },
+        "contacts": {
+          "mobile": "555-111-222",
+          "home": "221B Baker Street"
+        }
+      },
+      {
+        "name": {
+          "first": "Jane1",
+          "last": "Doe2"
+        },
+        "contacts": {
+          "mobile": "555-222-111",
+          "home": "221B Baker Street"
+        }
+      }
+    ],
+    "suspects": [
+      "taylan",
+      "colhen"
+    ],
+    "crimeType": "ASSAULT",
+    "status": "CLOSED"
+  },
+  {
+    "_id": "2002-11-23/1",
+    "date": {
+      "year": 2002,
+      "month": 11,
+      "day": 23
+    },
+    "victims": [
+      {
+        "name": {
+          "first": "John3",
+          "last": "Doe3"
+        },
+        "contacts": {
+          "mobile": "555-111-333"
+        }
+      },
+      {
+        "name": {
+          "first": "John4",
+          "last": "Doe4"
+        },
+        "contacts": {
+          "mobile": "555-111-444"
+        }
+      },
+      {
+        "name": {
+          "first": "John5",
+          "last": "Doe5"
+        },
+        "contacts": {
+          "mobile": "555-111-555"
+        }
+      }
+    ],
+    "suspects": [
+      "antspi",
+      "colhen"
+    ],
+    "crimeType": "ASSAULT",
+    "status": "CLOSED"
+  },
+  {
+    "_id": "1989-05-27/1",
+    "date": {
+      "year": 1989,
+      "month": 5,
+      "day": 27
+    },
+    "victims": [
+      {
+        "name": {
+          "first": "John6",
+          "last": "Doe6"
+        },
+        "contacts": {
+          "mobile": "555-111-666"
+        }
+      },
+      {
+        "name": {
+          "first": "John7",
+          "last": "Doe7"
+        },
+        "contacts": {
+          "mobile": "555-111-777"
+        }
+      }
+    ],
+    "crimeType": "MURDER",
+    "linkedCases": [
+      "1999-12-1/1"
+    ],
+    "status": "OPEN"
+  },
+  {
+    "_id": "1999-12-1/1",
+    "date": {
+      "year": 1999,
+      "month": 12,
+      "day": 1
+    },
+    "victims": [
+      {
+        "name": {
+          "first": "John1",
+          "last": "Doe1"
+        },
+        "contacts": {
+          "mobile": "555-111-111"
+        }
+      }
+    ],
+    "crimeType": "MURDER",
+    "linkedCases": [
+      "1989-05-27/1"
+    ],
+    "status": "OPEN"
+  }
+]
