@@ -3,8 +3,9 @@ clear;
 
 % choose on of the transformations for testing
 % t = struct('x', 1.5, 'y', 0.5, 'r', 0, 's', 1);
-t = struct('x', 0, 'y', 0, 'r', 10, 's', 1);
+% t = struct('x', 0, 'y', 0, 'r', 10, 's', 1);
 % t = struct('x', 0, 'y', 0, 'r', 0, 's', 0.75);
+t = struct('x', 2, 'y', 1, 'r', 10, 's', 0.75);
 
 ti = inverse_transformation(t);
 

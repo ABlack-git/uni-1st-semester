@@ -17,6 +17,11 @@ function t_optim = estimate_transformation_exhaustive(img, img_ref, ...
 t_space = transformation_space_exhaustive(t_rng);
 
 % TODO: Replace with your own implementation.
+% create meshgrid of input image
+% apply transform on mesh
+% use sample_img to get subimage of reference
+% compute ssd
+% repeate for all t in t_space and pick t with minimal ssd
 t_optim = t_space(1);
 
 end
