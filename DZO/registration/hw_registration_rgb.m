@@ -44,10 +44,10 @@ for c = 1:3
 		% identity transformation from the reference channel to itself
 		t_rgb{c} = struct('x', 0, 'y', 0, 'r', 0, 's', 1);
 	else
-		% t_rgb{c} = estimate_transformation_exhaustive(rgb_cropped{c}, ...
-		%	rgb_cropped{ref_channel}, cost_func, t_rng);
+% 		 t_rgb{c} = estimate_transformation_exhaustive(rgb_cropped{c}, ...
+% 			rgb_cropped{ref_channel}, cost_func, t_rng);
 		t_rgb{c} = estimate_transformation_hierarchical(rgb_cropped{c}, ...
-			rgb_cropped{ref_channel}, cost_func, num_levels, t_rng);
+ 			rgb_cropped{ref_channel}, cost_func, num_levels, t_rng);
 	end
 end
 

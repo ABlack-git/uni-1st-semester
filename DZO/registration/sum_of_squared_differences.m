@@ -10,6 +10,6 @@ function ssd = sum_of_squared_differences(img1, img2)
 %   ssd [double] sum of squared differences between pixels
 
 % TODO: Replace with your own implementation.
-ssd = sum((img1-img2).^2);
+ssd = sum(reshape((img1-img2).^2,1,[]));
 
 end

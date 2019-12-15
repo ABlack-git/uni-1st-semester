@@ -17,11 +17,16 @@ function t_optim = estimate_transformation_exhaustive(img, img_ref, ...
 t_space = transformation_space_exhaustive(t_rng);
 
 % TODO: Replace with your own implementation.
-% create meshgrid of input image
-% apply transform on mesh
-% use sample_img to get subimage of reference
-% compute ssd
-% repeate for all t in t_space and pick t with minimal ssd
-t_optim = t_space(1);
+[h,w] = size(img);
+[x,y] = meshgrid(1:w, 1:h);
+num_transforms = size(t_space,2);
+ssd = zeros(1,num_transforms);
+for i=1:num_transforms
+    [xt,yt] = transform_grid(x,y,t_space(i));
+    img_t = sample_image(img_ref,xt,yt);
+    ssd(i)=cost_func(img,img_t);
+end
+[~,idx] = min(ssd);
+t_optim = t_space(idx);
 
 end
