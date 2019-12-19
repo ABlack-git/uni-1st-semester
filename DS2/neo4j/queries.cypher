@@ -1,4 +1,3 @@
-// police database containing information about Italian mafia families and their members
 CREATE
 	(f1:FAMILY {id: "corleone", name: "The Corleones"}),
 	(f2:FAMILY {id: "tattaglia", name: "The Tattaglias"}),
@@ -39,3 +38,35 @@ CREATE
 	(p5)-[:SUBORDINATE]->(p7),
 	(p5)-[:SUBORDINATE]->(p10),
 	(p10)-[:SUBORDINATE]->(p11);
+
+// *********** QUERIES *********** //
+
+// find all members for all families
+MATCH (p:PERSON)-[m:MEMBER]->(f:FAMILY) 
+RETURN p.name, m.position, m.startYear, m.endYear, f.name
+ORDER BY f.name, m.startYear ASC, m.endYear ASC, p.name;
+
+// find all consiglieries of all families
+MATCH (f:FAMILY) 
+OPTIONAL MATCH (p:PERSON)-[m:MEMBER {position: "Consigliere"}]->(f) 
+RETURN f.name, m.position, m.startYear, m.endYear, p.name;
+
+// find all people who were members of a family between 1949 and 1954 
+MATCH (f:FAMILY)<-[m:MEMBER]-(p:PERSON) 
+	WHERE 1949>m.startYear and 1954<m.endYear 
+RETURN f.name, p.name, m.position, m.startYear, m.endYear;
+
+//get number of members of a family between 1949 and 1954
+MATCH (f:FAMILY)<-[m:MEMBER]-(p:PERSON) 
+	WHERE 1949>m.startYear and 1954<m.endYear 
+WITH f,count(distinct p) as members 
+RETURN f.name, members;
+
+// Count number of subordinates of a person when this person occupied some position 
+MATCH (p1:PERSON)-[m1:MEMBER]->(f:FAMILY)
+MATCH (p1)-[s:SUBORDINATE *]->(p2:PERSON) 
+MATCH (p2)-[m2:MEMBER]->(f) 
+	WHERE p1<>p2 and m2.startYear<m1.endYear and m2.endYear>m1.startYear
+WITH p1,f,m1, count(s) as subNum
+RETURN p1.name, f.name, m1.position, m1.startYear, m1.endYear, subNum
+ORDER BY f.name, subNum DESC;
