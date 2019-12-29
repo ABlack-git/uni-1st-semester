@@ -1,0 +1,153 @@
+[
+  {
+    "_id": "antspi",
+    "name": {
+      "first": "Spike",
+      "last": "Anthony"
+    },
+    "dateOfBirth": {
+      "year": 1971,
+      "month": 6,
+      "date": 26
+    },
+    "gender": "M",
+    "casesInvolved": [
+      "2002-11-23/1"
+    ],
+    "crimeHistory": [
+      {
+        "crimeType": "ASSAULT",
+        "convictionDate": {
+          "year": 1981,
+          "month": 5,
+          "day": 30
+        }
+      },
+      {
+        "crimeType": "ROBBERY",
+        "convictionDate": {
+          "year": 1984,
+          "month": 3,
+          "day": 25
+        }
+      }
+    ]
+  },
+  {
+    "_id": "taylan",
+    "name": {
+      "first": "Landon",
+      "last": "Taylor",
+      "middle": "Jeremy"
+    },
+    "dateOfBirth": {
+      "year": 1965,
+      "month": 7,
+      "date": 17
+    },
+    "gender": "M",
+    "casesInvolved": [
+      "2001-04-12/1"
+    ],
+    "crimeHistory": [
+      {
+        "crimeType": "ASSAULT",
+        "convictionDate": {
+          "year": 1986,
+          "month": 9,
+          "day": 9
+        }
+      },
+      {
+        "crimeType": "ASSAULT",
+        "convictionDate": {
+          "year": 1991,
+          "month": 1,
+          "day": 9
+        }
+      },
+      {
+        "crimeType": "MURDER",
+        "convictionDate": {
+          "year": 2005,
+          "month": 9,
+          "day": 1
+        }
+      }
+    ]
+  },
+  {
+    "_id": "colhen",
+    "name": {
+      "first": "Henry",
+      "last": "Collins"
+    },
+    "dateOfBirth": {
+      "year": 1972,
+      "month": 10,
+      "date": 11
+    },
+    "gender": "M",
+    "casesInvolved": [
+      "2002-11-23/1",
+      "2001-04-12/1"
+    ],
+    "crimeHistory": [
+      {
+        "crimeType": "ROBBERY",
+        "convictionDate": {
+          "year": 1991,
+          "month": 12,
+          "day": 22
+        }
+      },
+      {
+        "crimeType": "ROBBERY",
+        "convictionDate": {
+          "year": 1999,
+          "month": 1,
+          "day": 12
+        }
+      }
+    ]
+  },
+  {
+    "_id": "wesmar",
+    "name": {
+      "first": "Mary",
+      "last": "Wesley"
+    },
+    "dateOfBirth": {
+      "year": 1955,
+      "month": 1,
+      "date": 1
+    },
+    "gender": "F",
+    "crimeHistory": [
+      {
+        "crimeType": "MURDER",
+        "convictionDate": {
+          "year": 1974,
+          "month": 7,
+          "day": 17
+        }
+      }
+    ]
+  },
+  {
+    "_id": "ledbea",
+    "name": {
+      "first": "Beatrice",
+      "last": "Ledford"
+    },
+    "dateOfBirth": {
+      "year": 1981,
+      "month": 4,
+      "date": 21
+    },
+    "gender": "F",
+    "casesInvolved": [
+      "1978-03-12/1"
+    ]
+  }
+]

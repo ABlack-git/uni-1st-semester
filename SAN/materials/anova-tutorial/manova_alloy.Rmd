@@ -1,0 +1,85 @@
+---
+title: "Manova Alloy Example Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+The example demonstrates that **Manova shows a higher power than a sequence of Anova trials**. The example works with artificial data motivated in mechanical engineering domain.
+
+There is a categorical independent variable "alloy type" and two continuous dependent variables "flexibility" and "strength". Flexibility has a normal distribution and is independent of alloy type. Strength is correlated with flexibility, the alloy C shows an increased strength. Consequently, the null hypothesis that mean flexibility and strength do not change with the alloy type should be rejected in this task.
+
+Manova detects the influence of alloy type on strength earlier than Anova, i.e., it needs fewer observations for weaker dependency.
+
+### Libraries
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(gplots)
+library(plyr)
+```
+
+
+### Generate input data 
+There are 3 alloy types. We have 30 samples per type. The magnitude of alloy C influence on strength is the main parameter here (the default value is 0.2).
+```{r}
+alloy<-factor(c(rep("A",30),rep("B",30),rep("C",30)))
+flexibility<-rnorm(90,10,1)
+effect_size<-0.2
+strength<-0.5*flexibility+0.5*rnorm(90,1,1)+effect_size*as.numeric(alloy=="C")
+alloys<-data.frame(alloy,flexibility,strength)
+```
+
+### Compute some basic statistics
+Correlation in groups should be larger than the correlation across groups as it is influenced by the alloy type too.
+```{r}
+cor.test(flexibility,strength)
+cov(alloys[-1])
+cor.test(flexibility[alloy=="A"],strength[alloy=="A"])
+cor.test(flexibility[alloy=="B"],strength[alloy=="B"])
+cor.test(flexibility[alloy=="C"],strength[alloy=="C"])
+```
+
+### Plot the data
+```{r message=FALSE, warning=FALSE}
+plotmeans(flexibility~alloy,alloys,ylim=c(9.2,10.8),ylab="flexibility, strength",yaxt="n",col="blue")
+plotmeans((strength+5)~alloy,alloys,add=TRUE,barcol="red",col="red")
+legend("topleft",legend=c("flexibility","strength"),col=c("blue","red"),pch=21)
+
+plot(flexibility,strength,col=alloy,pch=19)
+abline(lm(strength~flexibility,subset=alloy=="A",data=alloys),col="black",lty=3)
+abline(lm(strength~flexibility,subset=alloy=="B",data=alloys),col="red",lty=3)
+abline(lm(strength~flexibility,subset=alloy=="C",data=alloys),col="green",lty=3)
+
+legend("topleft",legend=levels(alloys$alloy),col=c("black","red","green"),pch=19)
+```
+
+### Run the statistical tests, compare them
+Manova tends to reject the null, Anova does not (the actual result depends on the random process of data generation, the parameter setting influnces it as well).
+```{r}
+summary(aov(flexibility~alloy,alloys))
+summary(aov(strength~alloy,alloys))
+
+summary(manova(cbind(flexibility,strength) ~ alloy, data = alloys),test="Wilks")
+
+```
+
+### Calculate the Wilks lambda statistics as in lecture
+This piece of code applies the formulas from the lecture. It shows that they match the definition of covariance matrix for T and E. It also demonstrates the way in which lambda get calculated and statistically evaluated.
+```{r}
+cross_prod_mat<-function(df,vec){cp<-alply(df,1,function(x){t(x-vec)%*%as.matrix(x-vec)});return(Reduce('+',cp))}
+cross_prod_mat<-function(df,vec){cp<-alply(df,1,function(x){as.numeric(x-vec)%o%as.numeric(x-vec)});return(Reduce('+',cp))} # the same via outer product %o%
+y_grand<-colMeans(alloys[-1])
+T<-cross_prod_mat(alloys[-1],y_grand) 
+T/(nrow(alloys)-1) # after normalization identical with the covariance matrix above
+
+alloys.g<-split(alloys[-1],alloys$alloy)
+y_group<-do.call(cbind,apply(alloys[-1],2,function(x){aggregate(x~alloy,FUN=mean)}))[c(2,4)]
+E=mapply(cross_prod_mat,df=alloys.g,vec=as.list(as.data.frame(t(y_group))),SIMPLIFY=F)
+E<-Reduce('+',E)
+
+lambda<-det(E)/det(T) 
+lambda # matches the manova Wilks stat
+
+bartlett<--(nrow(alloys)-1-(ncol(alloys[-1])+length(levels(alloy)))/2)*log(lambda) # Bartlett's approximation
+1-pchisq(bartlett,ncol(alloys[-1])*(length(levels(alloy))-1)) # pvalue based on comparison with chisq quantiles, Manova match again
+
+```
