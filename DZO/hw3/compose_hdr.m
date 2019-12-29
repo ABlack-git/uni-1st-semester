@@ -16,11 +16,16 @@ function hdr = compose_hdr(im, t, w, finv)
 assert(numel(im) == numel(t));
 assert(numel(w) == numel(finv));
 
-hdr = zeros(size(im{1}));
-
 %% TODO: Implement me!
-
-
+P=size(t,2);
+num = zeros(size(im{1}));
+denum = zeros(size(im{1}));
+for i=1:P
+   im_i = double(im{i})+1;
+   num = num + w(im_i).*finv(im_i)/t(i);
+   denum = denum+w(im_i);
+end
+hdr = num./denum;
 %%
 
 end

@@ -32,8 +32,12 @@ assert(numel(Z) == numel(w));
 [i_E, i_t] = ind2sub(size(Z), (1:numel(Z))');
 
 %% TODO: Implement me!
-E = zeros([N 1]);
-t = zeros([1 P]);
+weights = sqrt(reshape(w,1,N*P));
+A=sparse([1:N*P, 1:N*P, N*P+1],[i_E', N+i_t', N+1],[repmat(weights,1,2).*ones(1,2*N*P),1]);
+b=[weights.*log(reshape(Z, 1,N*P)+eps),0]';
+x= A\b;
+E = exp(x(1:N));
+t = exp(x(N+1:end));
 
 %%
 

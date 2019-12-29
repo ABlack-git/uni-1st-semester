@@ -43,6 +43,6 @@ set(show_images({rendered, im2double(im{i})}), 'Name', 'Reconstructed image with
 
 %% Apply tone mapping.
 figure('Name', 'HDR gamma');     imshow(tonemap_gamma(hdr, 1/6));
-% (week 2)
-% figure('Name', 'HDR log');       imshow(tonemap_log(hdr));
-% figure('Name', 'HDR equalized'); imshow(tonemap_histeq(hdr));
+
+figure('Name', 'HDR log');       imshow(tonemap_log(hdr));
+figure('Name', 'HDR equalized'); imshow(tonemap_histeq(hdr));

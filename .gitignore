@@ -3,3 +3,4 @@
 *.zip
 *.o
 **/cmake-build-debug/**
+*.m~
