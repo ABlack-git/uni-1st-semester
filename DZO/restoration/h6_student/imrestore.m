@@ -32,7 +32,7 @@ num_channels = size(degradedImage,3);
             % Replace the next line with your code
             restoredImage = zeros(size(degradedImage));
             for i=1:num_channels
-                restoredImage(:,:,i) = medfilt2(degradedImage, hsize);
+                restoredImage(:,:,i) = medfilt2(degradedImage(:,:,i), hsize);
             end
         case 'min'
             if nargin < 3
