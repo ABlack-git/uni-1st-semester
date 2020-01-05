@@ -1,5 +1,6 @@
 import data
 import numpy as np
+
 from data import DataLoader
 from sklearn.mixture import GaussianMixture
 
