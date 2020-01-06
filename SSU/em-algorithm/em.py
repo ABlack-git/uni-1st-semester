@@ -34,7 +34,7 @@ class EMShapeModel:
         assert init_covs.shape == covs_shape, f"shape of init_covs array " \
             f"{init_covs.shape} is not equal to {covs_shape}"
 
-    def fit(self, x, num_iter=10):
+    def fit(self, x, num_iter, tolerance):
         """
 
         :param x: shape (n_samples, n_data_points, n_features)
@@ -43,11 +43,27 @@ class EMShapeModel:
         data_shape = (self.num_samples, self.num_data_points, 3)
         assert x.shape == data_shape, f"shape of data is {x.shape}, should " \
             f"be {data_shape}"
+        log_l_prev = float('-inf')
         for it in range(num_iter):
-            print(f"iteration {it}/{num_iter}")
             self._e_step(x)
             self._m_step(x)
-            print(f"log_l: {self.log_likelyhood(x)}")
+            log_l = self.log_likelyhood(x)
+            print(f"iteration: {it + 1}/{num_iter}, log_l: {log_l: .5f}")
+            log_l_diff = log_l - log_l_prev
+            if log_l_diff < tolerance:
+                print(f'log_l difference is less than tolerance: {log_l_diff: .5f}<{tolerance}. Stopping.')
+                break
+            log_l_prev = log_l
+
+    def _predict(self):
+        result = self.alphas_s1.copy()
+        result[self.alphas_s1 >= 0.5] = 1
+        result[self.alphas_s1 < 0.5] = 0
+        return result
+
+    def fit_predict(self, x, num_iter=50, tolerance=0.001):
+        self.fit(x, num_iter=num_iter, tolerance=tolerance)
+        return self._predict()
 
     def log_likelyhood(self, x):
         log_l = 0
@@ -55,22 +71,14 @@ class EMShapeModel:
             p_x_s0 = self._joint_probability(
                 x[n_sample, :, :], self.means[n_sample, 0, :],
                 self.covs[n_sample, 0, :, :], s=0
-                )
+            )
             p_x_s1 = self._joint_probability(
                 x[n_sample, :, :], self.means[n_sample, 1, :],
                 self.covs[n_sample, 1, :, :],
                 s=1
-                )
+            )
             log_l = log_l + np.sum(np.log(p_x_s0 + p_x_s1))
-        return log_l / self.num_samples
-
-    def predict(self, x):
-        """
-
-        :param x: shape (n_data_points, n_features, n_samples_to_predict)
-        :return:
-        """
-        pass
+        return log_l / (self.num_samples + self.num_data_points)
 
     def _e_step(self, x):
         """
@@ -105,9 +113,9 @@ class EMShapeModel:
         # update tau
         for n_sample in range(self.num_samples):
             mu0, cov0 = self._estimate_tau(x[n_sample, :, :],
-                alpha_s0[n_sample, :])
+                                           alpha_s0[n_sample, :])
             mu1, cov1 = self._estimate_tau(x[n_sample, :, :],
-                self.alphas_s1[n_sample, :])
+                                           self.alphas_s1[n_sample, :])
             self.means[n_sample, 0, :] = mu0
             self.means[n_sample, 1, :] = mu1
             self.covs[n_sample, 0, :, :] = cov0
