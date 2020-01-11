@@ -110,6 +110,13 @@ group_by(data, year, sex) %>% summarise(suicides_no = sum(suicides_no)/sum(popul
     scale_x_continuous(breaks = scales::pretty_breaks(n = x_year_ticks))+
     labs(y='Suicides per 100k people')
 
+group_by(data, year, sex) %>% summarise(suicides_no = sum(suicides_no)/sum(population)*100000) %>% spread(sex, suicides_no) %>% mutate(prop = Male/(Male + Female))%>%
+  ggplot(aes(x=year, y=prop))+
+    geom_line()+
+    geom_point()+
+    geom_hline(aes(yintercept = mean(prop)),  linetype='dashed')+
+    labs(y='Proportion of male suicide')
+
 group_by(data, year, sex) %>% summarise(suicides_no = sum(suicides_no)/sum(population)*100000)%>%
   ggplot(aes(x=sex, y=suicides_no, fill=sex))+
     geom_boxplot()+
@@ -404,7 +411,25 @@ So in this exploratory analysis we found out several intresting pattern of suici
 
 # Hypothesis testing 
 
-## H1 Strong linear reletionship between year and gdp
+## H1 There is no strong linear reletionship between year and gdp
+In previous section we spoke about that there maybe no use in predicting suicide rate by countries GDP since it grows with time. Here we will check if there is indeed a linear relation between these two variables.
+
+$H_0$: There is no linear relationshpi between year and gdp.
+$H_a$: Th
+
+```{r}
+data_gdp_year <- data %>% group_by(country, year)%>%select(country, year, gdp_per_capita)%>%summarise(gdp_per_capita=mean(gdp_per_capita))
+ggplot(data_gdp_year, aes(x=year, y=gdp_per_capita, col=country))+
+  geom_point()+
+  geom_line()+
+  theme(legend.position = 'none')
+fit <- lm(gdp_per_capita ~ year, data_gdp_year)
+summary(fit)
+ggplot(data_gdp_year, aes(x=year, y=gdp_per_capita))+
+  geom_point()+
+  geom_line(data = fortify(fit), aes(x = year, y = .fitted))+
+  theme(legend.position = 'none')
+```
 
 ## H2 Suicide rate of children across continents is the same
 
