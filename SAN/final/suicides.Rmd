@@ -163,7 +163,9 @@ group_by(data, year, sex, age) %>% summarise(suicides_no = sum(suicides_no)/sum(
 
 # Analisys of suicide ratio by geographical and economical factors
 
-Let's start by ploting a graph of suicide development by continents
+## By continents
+
+Let's start by ploting a graph of suicide development by continents w.r.t to population of a whole continent.
 
 ```{r}
 group_by(data, year, continent) %>% summarise(cont_pop=sum(population), s_no=sum(suicides_no), s_no_per_p = sum(suicides_no)/sum(population)*100000) %>%
@@ -181,7 +183,7 @@ Firstly, it's worth to mention that thera are only 3 countries present for Afric
 Ok, so we can see a good trend in Europe that suicide rate is steadily decreasing starting from 1995. But for Oceania and Americas the trend is quite worrying showing an increase in suicide rate. And for Asia it looks like the rate oscilates somwhere around the mean.
 
 ```{r}
-group_by(data, year, continent) %>% summarise(suicides_per_100 = sum(suicides_no)/sum(population)*100000)%>%
+group_by(data,year,continent) %>% summarise(suicides_per_100 = sum(suicides_no)/sum(population)*100000)%>%
   ggplot(aes(x=continent, y=suicides_per_100, fill=continent))+
     geom_boxplot()+
     theme(legend.position = 'none')+
@@ -192,15 +194,47 @@ group_by(data, year, sex, continent) %>% summarise(suicides_per_100 = sum(suicid
     geom_boxplot()+
     labs(x='Continent', y='Suicides per 100k people')
 
+
 group_by(data, year, age, continent) %>% summarise(suicides_per_100 = sum(suicides_no)/sum(population)*100000)%>%
   ggplot(aes(x=continent, y=suicides_per_100, fill=age))+
-    geom_boxplot()+
-    labs(x='Continent', y='Suicides per 100k people')
+      geom_boxplot()+
+      labs(x='Continent', y='Suicides per 100k people')
 
 ```
 From the plots above we can clearly see that the biggest suicide ratio is in Europe followed by Asia, Oceania and Americas. Suicide ratio by gender again not in favor of men as we've seen in global statistics. Suicide ratio by age is intresting in Oceania - it dosn't follow the global trend, that suicide ratio increases with age, but we can see that the ratio of age group 25-34 and suicide ratio of group 15-24 is higher than that of group 55-74.
 
 Let's have a look on average statistics by countries. Down below I plot average suicide rate by countries, proprtion of suicide by age and gender grups. 
+
+```{r}
+
+data %>% group_by(country, year, continent) %>% summarise(suicides_no = sum(suicides_no), population = sum(population))%>%
+  group_by(country, continent) %>% summarise(suicide_rate = mean(suicides_no/population * 100000))%>%
+  ggplot(aes(x=continent, y=suicide_rate, fill=continent))+
+    geom_boxplot()+
+    theme(legend.position = 'none')+
+    labs(x='Continent', y='Suicides per 100k people')
+
+data %>% group_by(country, year, sex, continent) %>% summarise(suicides_no = sum(suicides_no), population = sum(population))%>%
+  group_by(country, sex, continent) %>% summarise(suicide_rate = mean(suicides_no/population * 100000))%>%
+  ggplot(aes(x=continent, y=suicide_rate, fill=sex))+
+    geom_boxplot()+
+    labs(x='Continent', y='Suicides per 100k people')
+
+data %>% group_by(country, year, age, continent) %>% summarise(suicides_no = sum(suicides_no), population = sum(population))%>%
+  group_by(country, age, continent) %>% summarise(suicide_rate = mean(suicides_no/population * 100000))%>%
+  ggplot(aes(x=continent, y=suicide_rate, fill=age))+
+    geom_boxplot()+
+    labs(x='Continent', y='Suicides per 100k people')
+
+data %>% group_by(country, year, age, continent) %>% summarise(suicides_no = sum(suicides_no), population = sum(population))%>%
+  group_by(country, age, continent) %>% summarise(suicide_rate = mean(suicides_no/population * 100000))%>%
+  ggplot(aes(x=continent, y=suicide_rate, fill=age))+
+    facet_wrap(~age)+
+    geom_boxplot()+
+    geom_point()+
+    labs(x='Continent', y='Suicides per 100k people')
+
+```
 
 ```{r fig.height=12, fig.width=8}
 group_by(data, country, continent) %>% summarise(suicides_per_100k = sum(suicides_no)/sum(population)*100000)%>%
@@ -276,12 +310,34 @@ However, we can ask a different question. Is there a difference in suicide rate 
 Let's have a look at how contries compare in suicide rate by their average gdp per capita. For this we will get the average GDP of a country and Average suicide rate (note that a point represents a country and we colour a point by continent):
 
 ```{r}
-group_by(data, country, continent) %>% summarise(suicide_rate = sum(suicides_no)/sum(population)*100000, avg_gdp=mean(gdp_per_capita))%>%
-  ggplot(aes(x=avg_gdp, y=suicide_rate, colour=continent))+
+data_suicide_gdp <-group_by(data, year, country, gdp_per_capita, continent) %>% summarise(suicide_rate = sum(suicides_no)/sum(population)*100000)%>%group_by(country, continent)%>%summarise(mdn_suicide_rate= mean(suicide_rate), mdn_gdp_per_capita = mean(gdp_per_capita))
+
+data_suicide_gdp%>%
+  ggplot(aes(x=mdn_gdp_per_capita, y=mdn_suicide_rate, colour=continent))+
     geom_point()+
     labs(x='Average GDP per capita', y='Suicide rate per 100k', colour='Continent')
 
 ```
+```{r}
+box_data <- boxplot(data_suicide_gdp$mdn_gdp_per_capita)
+box_data$stats
+```
+
+```{r}
+data_suicide_gdp <- data_suicide_gdp %>% mutate(income_level = case_when(mdn_gdp_per_capita < 4006.4643 ~ 'Low', 
+                                                              mdn_gdp_per_capita>=4006.4643 & mdn_gdp_per_capita < 8992.6190 ~ 'Lower-middle',
+                                                              mdn_gdp_per_capita>=8992.6190 & mdn_gdp_per_capita <27819.0000 ~ 'Higher-middle',
+                                                              mdn_gdp_per_capita >=27819.0000 ~ 'High')) %>% 
+  mutate(income_level = factor(income_level, ordered=TRUE, levels = c('Low','Lower-middle','Higher-middle', 'High')))
+
+
+data_suicide_gdp%>%
+  ggplot(aes(x=income_level, y=mdn_suicide_rate, fill=income_level))+
+    geom_boxplot()+
+    labs(x='Income Level', y='Suicides per 100k people')+
+    theme(legend.position = 'none')
+```
+
 There is no obvious relation in this plot. There is quite high variability for countris with low gdp and it's not clear how to split countries by income in this plot. What we can do instead is to add another catigorical variable by gdp which we will call Income Level and we will compare records by this grouping.
 
 So, firstly let's decide how we will split countries by income level. The idea is to split them by quartiles of average gdp per capita. Let's have a look at box plot and quartile values:
@@ -291,17 +347,31 @@ gdp_by_country_year <- data %>% select(country, year, gdp_per_capita) %>% group_
 box_data <- boxplot(gdp_by_country_year$gdp_per_capita)
 box_data$stats
 
+
+
 ```
 
 We will pick the values of 1st, 2nd and 3nd quartiles as borders for income levels and we will divide income levels in these groups: Low, Lower-middle, Higher-middle and High. 
 
 So let's augment the dataset and compare suicide rate by income level.
+
+
 ```{r}
 data_income_level <- data %>% mutate(income_level = case_when(gdp_per_capita < 3409 ~ 'Low', 
                                                               gdp_per_capita>=3409 & gdp_per_capita < 9448 ~ 'Lower-middle',
                                                               gdp_per_capita>=9448 & gdp_per_capita <25570 ~ 'Higher-middle',
                                                               gdp_per_capita >=25570 ~ 'High')) %>% 
   mutate(income_level = factor(income_level, ordered=TRUE, levels = c('Low','Lower-middle','Higher-middle', 'High')))
+
+
+
+group_by(data_income_level, year, income_level) %>% summarise(suicides_per_100k = sum(suicides_no)/sum(population)*100000) %>%
+  ggplot(aes(x=year, y=suicides_per_100k, col=income_level))+
+    facet_grid(income_level ~ .)+
+    geom_line()+
+    geom_point()+
+    labs(x='Income Level', y='Suicides per 100k people')+
+    theme(legend.position = 'none')
 
 group_by(data_income_level, year, income_level) %>% summarise(suicides_per_100k = sum(suicides_no)/sum(population)*100000) %>%
   ggplot(aes(x=income_level, y=suicides_per_100k, fill=income_level))+
@@ -320,6 +390,22 @@ group_by(data_income_level, continent, year, income_level) %>% summarise(suicide
   ggplot(aes(x = income_level, y=suicides_per_100k, fill=continent))+
   geom_boxplot()+
   labs(x='Income Level', y='Suicides per 100k')
+
+group_by(data_income_level, year, income_level, continent) %>% summarise(suicides_per_100k = sum(suicides_no)/sum(population)*100000) %>%
+  ggplot(aes(x=year, y=suicides_per_100k, col=continent))+
+    facet_grid(income_level ~ .)+
+    geom_line()+
+    geom_point()+
+    labs(x='Income Level', y='Suicides per 100k people')+
+    theme(legend.position = 'bottom')
+
+group_by(data_income_level, year, income_level, continent) %>% summarise(suicides_per_100k = sum(suicides_no)/sum(population)*100000) %>%
+  ggplot(aes(x=year, y=suicides_per_100k, col=income_level))+
+    facet_grid(continent ~ .)+
+    geom_line()+
+    geom_point()+
+    labs(x='Income Level', y='Suicides per 100k people')+
+    theme(legend.position = 'bottom')
 
 ```
 
@@ -384,7 +470,7 @@ group_by(data, year, generation) %>% summarise(suicides_t_pop = sum(suicides_no)
     scale_x_continuous(breaks = scales::pretty_breaks(n = x_year_ticks))+
     labs(y='Number of suicides per 100k people')
 
-group_by(suicides_no_per_year_pop, year, age, generation) %>% summarise(suicides_t_pop = sum(suicides_per_pop)) %>%
+group_by(data, year, age, generation) %>% summarise(suicides_t_pop = sum(suicides_no)/sum(population)*100000) %>%
   ggplot(aes(x=year, y=suicides_t_pop, colour=generation))+
     facet_grid(age ~ ., scales = "free_y")+
     geom_line()+
@@ -411,29 +497,54 @@ So in this exploratory analysis we found out several intresting pattern of suici
 
 # Hypothesis testing 
 
-## H1 There is no strong linear reletionship between year and gdp
-In previous section we spoke about that there maybe no use in predicting suicide rate by countries GDP since it grows with time. Here we will check if there is indeed a linear relation between these two variables.
+## H1 There is an increase in suicide rate ba age
 
-$H_0$: There is no linear relationshpi between year and gdp.
-$H_a$: Th
+
+$H_0$: 
+$H_a$: 
 
 ```{r}
-data_gdp_year <- data %>% group_by(country, year)%>%select(country, year, gdp_per_capita)%>%summarise(gdp_per_capita=mean(gdp_per_capita))
-ggplot(data_gdp_year, aes(x=year, y=gdp_per_capita, col=country))+
-  geom_point()+
-  geom_line()+
-  theme(legend.position = 'none')
-fit <- lm(gdp_per_capita ~ year, data_gdp_year)
-summary(fit)
-ggplot(data_gdp_year, aes(x=year, y=gdp_per_capita))+
-  geom_point()+
-  geom_line(data = fortify(fit), aes(x = year, y = .fitted))+
-  theme(legend.position = 'none')
+
+
 ```
+
+
 
 ## H2 Suicide rate of children across continents is the same
 
-## H3 Difference between male suicide ratio and female 
+In the previous section we saw that there is a difference in suice rates for continent and by age group. We saw that suicide rate among children was the lowest between all age categories. The hypothesis that we want to test is that there is no difference in suicide rate among children across continents, formaly:
+* $\H_0$: There is no difference between continents.
+* $\H_a$: At least one continent has different suicide rate among children.
+
+First thing to say is that we will note consider Africa in this test. Let's plot the data
+
+```{r}
+data_h2 <- group_by(data, year, age, continent) %>% filter(age=='5-14' & continent != 'Africa') %>% summarise(suicides_per_100 = sum(suicides_no)/sum(population)*100000)
+data_h2_2 <- group_by(data, country, age, continent) %>% filter(age=='5-14' & continent != 'Africa') %>% summarise(suicides_per_100 = sum(suicides_no)/sum(population)*100000)
+ggplot(data_h2_2, aes(x=continent, y=suicides_per_100, fill=age))+
+  geom_boxplot()+
+  labs(x='Continent', y='Suicides per 100k people')+
+  theme(legend.position = 'none')
+
+```
+
+To test this hypothesis we will use ANOVA. ANOVA has several inportant assumtions:
+
+1. Samples are drawn independantly of each other
+2. Samples from each groups are drawn from normal distribution
+3. All groups have common variance
+
+
+
+
+
+
+## H3 There is a difference in suicide rate by income level
+
+```{r}
+
+```
+
 
 # Model
 
